@@ -120,7 +120,7 @@ def doSub():
     
     print ('submitting jobs for '+configFile)
     
-    samplesdir='DeepNTuples.DeepNtuplizer.samples.'
+    samplesdir='DeepTau.DeepTauID.samples.'
     
     #format: njobs  sample  output  args1 args2 ... (simple whitespace)
     lines = [line.rstrip('\n') for line in open(args.file)]
@@ -163,7 +163,7 @@ def doSub():
                 sout = dasquery.communicate()[0]
                 filelist = ['"%s",' % f for f in sout.strip().split('\n')]
 
-                template_sample = os.path.join(os.environ['CMSSW_BASE'], 'src/DeepNTuples/DeepNtuplizer/python/samples/samples_template.py')
+                template_sample = os.path.join(os.environ['CMSSW_BASE'], 'src/DeepTau/DeepTauID/python/samples/samples_template.py')
                 dest_file = samplescriptdir+scriptfile+'.py'
                 with open(template_sample) as temp:
                     s = temp.read().replace('_FILES_', '\n'.join(filelist))
@@ -175,7 +175,7 @@ def doSub():
         
         
         sys.path.append(samplescriptdir)
-        sys.path.append(swdir+'/src/DeepNTuples/DeepNtuplizer/python/samples')
+        sys.path.append(swdir+'/src/DeepTau/DeepTauID/python/samples')
         importsample=sample.split('.')[-1]
         
         #print(importsample)
