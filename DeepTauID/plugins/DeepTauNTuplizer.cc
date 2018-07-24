@@ -73,9 +73,9 @@ private:
     virtual void endJob() override;
 
     //can return 0
-    pat::Jet* findMatchingJet(const reco::GenParticle* tau, const edm::Handle<edm::View<pat::Jet> >& jets)const;
-    pat::Tau* findMatchingRecTau(const reco::GenParticle* tau, const edm::Handle<edm::View<pat::Tau> >& taus)const;
-    pat::Tau* findMatchingRecTau(const reco::Jet* jet, const edm::Handle<edm::View<pat::Tau> >& taus)const;
+    const pat::Jet* findMatchingJet(const reco::GenParticle* tau,    const std::vector<const pat::Jet *> & jets)const;
+    const pat::Tau* findMatchingRecTau(const reco::GenParticle* tau, const std::vector<const pat::Tau *> & taus)const;
+    const pat::Tau* findMatchingRecTau(const reco::Jet* jet,         const std::vector<const pat::Tau *> & taus)const;
 
 
     // ----------member data ---------------------------
@@ -164,33 +164,42 @@ DeepTauNTuplizer::~DeepTauNTuplizer()
         delete m;
 }
 
-pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, const edm::Handle<edm::View<pat::Jet> >& jets)const{
-	pat::Jet* ret=0;
+const pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, const std::vector<const pat::Jet *> & jets)const{
+	const pat::Jet* ret=0;
 	double mindr=0.3;
-	for(size_t t=0;t<jets->size();t++){
-		auto jet=jets->at(t);
-		if(deltaR(jet.p4(),tau->p4())<mindr)
-			ret=&jet;
+	for(size_t t=0;t<jets.size();t++){
+		auto jet=jets.at(t);
+		double deltar=deltaR(jet->p4(),tau->p4());
+		if(deltar<mindr){
+			mindr=deltar;
+			ret=jet;
+		}
 	}
 	return ret;
 }
-pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::GenParticle* gentau, const edm::Handle<edm::View<pat::Tau> >& taus)const{
-	pat::Tau* ret=0;
+const pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::GenParticle* gentau, const std::vector<const pat::Tau *> & taus)const{
+	const pat::Tau* ret=0;
 	double mindr=0.3;
-	for(size_t t=0;t<taus->size();t++){
-		auto rectau=taus->at(t);
-		if(deltaR(gentau->p4(),rectau.p4())<mindr)
-			ret=&rectau;
+	for(size_t t=0;t<taus.size();t++){
+		auto rectau=taus.at(t);
+		double deltar=deltaR(gentau->p4(),rectau->p4());
+		if(deltar<mindr){
+			mindr=deltar;
+			ret=rectau;
+		}
 	}
 	return ret;
 }
-pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::Jet* jet, const edm::Handle<edm::View<pat::Tau> >& taus)const{
-	pat::Tau* ret=0;
+const pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::Jet* jet, const std::vector<const pat::Tau *> & taus)const{
+	const pat::Tau* ret=0;
 	double mindr=0.3;
-	for(size_t t=0;t<taus->size();t++){
-		auto tau=taus->at(t);
-		if(deltaR(tau.p4(),jet->p4())<mindr)
-			ret=&tau;
+	for(size_t t=0;t<taus.size();t++){
+		auto tau=taus.at(t);
+		double deltar=deltaR(tau->p4(),jet->p4());
+		if(deltar<mindr){
+			mindr=deltar;
+			ret=tau;
+		}
 	}
 	return ret;
 }
@@ -201,7 +210,14 @@ void
 DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-    //global info
+
+    edm::Handle<edm::View<reco::GenParticle> > h_gens;
+    iEvent.getByToken(genToken_, h_gens);
+
+    if(! h_gens.product()) return;
+    std::vector<const reco::GenParticle *> gens;
+    for(size_t i=0;i<h_gens->size();i++)
+    	gens.push_back(&h_gens->at(i));
 
     edm::Handle<reco::VertexCollection> vertices;
     iEvent.getByToken(vtxToken_, vertices);
@@ -210,17 +226,25 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     edm::Handle<double> rhoInfo;
     iEvent.getByToken(rhoToken_,rhoInfo);
 
-    edm::Handle<edm::View<pat::Jet> > jets;
-    iEvent.getByToken(jetToken_, jets);
+    edm::Handle<edm::View<pat::Jet> > h_jets;
+    iEvent.getByToken(jetToken_, h_jets);
+    std::vector<const pat::Jet *> jets;
+    if(h_jets.product()){
+    	for(size_t i=0;i<h_jets->size();i++)
+    		jets.push_back(&h_jets->at(i));
+    }
 
-    edm::Handle<edm::View<pat::Tau> > taus;
-    iEvent.getByToken(tauToken_, taus);
+    edm::Handle<edm::View<pat::Tau> > h_taus;
+    iEvent.getByToken(tauToken_, h_taus);
+    std::vector<const pat::Tau *> taus;
+    if(h_taus.product()){
+    	for(size_t i=0;i<h_taus->size();i++)
+    		taus.push_back(&h_taus->at(i));
+    }
 
-    edm::Handle<edm::View<reco::GenParticle> > gens;
-    iEvent.getByToken(genToken_, gens);
 
-    edm::Handle<double> rhoInfo;
-    iEvent.getByToken(rhoToken_,rhoInfo);
+
+
 
     for(auto& m:modules_){
     	m->clear();
@@ -233,42 +257,46 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     // loop over gen taus and associated jets
     // save all associated jets
-    std::vector<pat::Jet *> tauJets;
+    std::vector<const pat::Jet *> tauJets;
 
     genDecayHelper dec_helper;
-    for(size_t i=0;i<gens->size();i++){
-    	auto p = gens->at(i);
+    for(auto p: gens){
 
-    	if(!dec_helper.selectTau(p))continue;
-    	genDecayHelper::decayModes dec=dec_helper.getGenTauDecayMode(&p);
+    	if(!dec_helper.selectTau(*p))continue;
+    	genDecayHelper::decayModes dec=dec_helper.getGenTauDecayMode(p);
     	if(dec == genDecayHelper::electron || dec == genDecayHelper::muon) continue;
 
-    	pat::Jet * jet = findMatchingJet(&p,jets);
-    	pat::Tau * rectau = findMatchingRecTau(&p,taus);
+    	const pat::Jet * jet = findMatchingJet(p,jets);
+    	const pat::Tau * rectau = findMatchingRecTau(p,taus);
 
-    	tauJets.push_back(jet);
+
 
     	bool writetau=true;
     	for(auto& m:modules_){
-    		if(! m->fillBranches(rectau,jet,&p)){
+    		if(! m->fillBranches(rectau,jet,p)){
     			writetau=false;
     		}
     	}
-    	if(writetau)
+    	if(writetau){
+    		tauJets.push_back(jet);
     		tree_->Fill();
+    	}
 
     }
-    for(size_t j=0;j<jets->size();j++){
-    	auto jet = jets->at(j);
-    	if(std::find(tauJets.begin(),tauJets.end(),&jet) != tauJets.end()) continue;
+
+    for(auto& m:modules_){
+    	m->clear();
+    }
+    for(auto jet: jets){
+    	if(std::find(tauJets.begin(),tauJets.end(),jet) != tauJets.end()) continue;
 
     	//these have no gen Tau // maybe a fake reco tau
     	reco::GenParticle * notau=0;
-    	pat::Tau * rectau = findMatchingRecTau(&jet,taus);
+    	const pat::Tau * rectau = findMatchingRecTau(jet,taus);
 
     	bool writejet=true;
     	for(auto& m:modules_){
-    		if(! m->fillBranches(rectau,&jet,notau)){
+    		if(! m->fillBranches(rectau,jet,notau)){
     			writejet=false;
     		}
     	}

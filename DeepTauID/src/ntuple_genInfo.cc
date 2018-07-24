@@ -37,6 +37,7 @@ bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 		isTau=1;
 		isNoTau=0;
 
+
 		// TBI FIXME
 		genEvtWeight=1;
 		evtWeight=1;
@@ -47,7 +48,10 @@ bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 		genTau_M=genTau->mass();
 		genTauDeltaR=1;
 		if(recJet)
-			genTauDeltaR=reco::deltaR(recJet,genTau);
+			genTauDeltaR=reco::deltaR(recJet->p4(),genTau->p4());
+
+		genTauMatch=1;
+		genTauDecayMode=dec_helper_.getGenTauDecayMode(genTau);
 
 		if(genTau_pt<minpt_)return false;
 		if(fabs(genTau_eta)>maxeta_) return false;
@@ -61,7 +65,9 @@ bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 }
 
 
-void ntuple_genInfo::ntuple_genInfo():ntuple_content(){
+ntuple_genInfo::ntuple_genInfo():ntuple_content(){
+	minpt_=1;
+	maxeta_=3.1;
 	clear();
 }
 

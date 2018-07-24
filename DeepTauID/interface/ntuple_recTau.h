@@ -18,10 +18,10 @@ public:
 	ntuple_recTau();
 
 
-    void getInput(const edm::ParameterSet& iConfig);
+    void getInput(const edm::ParameterSet& iConfig){}
     void initBranches(TTree* );
-    void readEvent(const edm::Event& iEvent);
-    void readSetup(const edm::EventSetup& iSetup);
+    void readEvent(const edm::Event& iEvent){}
+    void readSetup(const edm::EventSetup& iSetup){}
     //use either of these functions
 
     bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau);
@@ -100,8 +100,6 @@ private:
     float recTauPtWeightedDrSignal;
     float recTauPtWeightedDrIsolation;
     float recTauNphoton;
-    float recTauEratio;
-    float recTauLeadingTrackChi2;
     float recTauEratio;
     float recTauLeadingTrackChi2;
     float recTauNphotonSignal;

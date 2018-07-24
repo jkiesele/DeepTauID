@@ -64,7 +64,7 @@ public:
     }
 
     void setRhoInfo(const double* r){rhoInfo_=r;}
-    const double* rhoInfo()const{return  rhoInfo_;}
+    const double* rhoInfo()const;
     const reco::VertexCollection * vertices()const{return vertices_;}
 
     static bool useoffsets;

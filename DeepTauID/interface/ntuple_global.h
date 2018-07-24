@@ -21,7 +21,7 @@ public:
     void readSetup(const edm::EventSetup& iSetup){};
     //use either of these functions
 
-    bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau){}
+    bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau){return true;}
 
     void clear();
 

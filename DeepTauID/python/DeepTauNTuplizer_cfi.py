@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-deepntuplizer = cms.EDAnalyzer('DeepNtuplizer',
+deepntuplizer = cms.EDAnalyzer('DeepTauNTuplizer',
                                 jets       = cms.InputTag("slimmedJets"),
                                 taus       = cms.InputTag("slimmedTaus"),
                                 genparticles = cms.InputTag("prunedGenParticles"),

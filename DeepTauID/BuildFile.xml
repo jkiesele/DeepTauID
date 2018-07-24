@@ -3,8 +3,6 @@
 <use name="FWCore/ParameterSet"/>
 <use name="DataFormats/PatCandidates"/>
 <use name="TrackingTools/IPTools"/>
-<use name="DeepNTuples/JetAnalysis"/>
-<use name="RecoBTag/DeepFlavour"/>
 
 <use   name="root"/>
 <use   name="rootrflx"/>
@@ -14,3 +12,5 @@
 </export>
 
 
+
+<Flags CXXFLAGS="-ggdb"/>

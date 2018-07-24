@@ -89,7 +89,7 @@ void ntuple_recTau::initBranches(TTree* t){
 	ADDBRANCH(t,recImpactParam3D);
 	ADDBRANCH(t,recImpactParamSign3D);
 
-	ADDBRANCH(t,recChi2DiffEvtVertex);
+	// none in official producer ADDBRANCH(t,recChi2DiffEvtVertex);
 
 	ADDBRANCH(t,hasRecDecayVertex);
 
@@ -125,12 +125,13 @@ void ntuple_recTau::initBranches(TTree* t){
 
 
 bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau){
-#warning "ntuple_recTau::fillBranches: catchInfsAndBound needs to be implemented"
 
 	clear();
 	if(!recTau){
 		return true;
 	}
+
+	isRecTau=1;
 
 	recTauDecayMode_i=recTau->decayMode();
 	recTauDecayMode=recTau->decayMode();
@@ -141,33 +142,33 @@ bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet,
 
 
 
-	recTauVtxZ = catchInfsAndBound(recTau->vertex().z(),20,-20,20);
-	recImpactParamPCA_x=recTau->dxy_PCA().x();
-	recImpactParamPCA_y=recTau->dxy_PCA().y();
-	recImpactParamPCA_z=recTau->dxy_PCA().z();
-	recImpactParam=recTau->dxy();
-	recImpactParam3D=recTau->ip3d();
-	recImpactParamSign=recTau->dxy_Sig();
-	recImpactParamSign3D=recTau->ip3d_Sig();
+	recTauVtxZ = catchInfsAndBound(recTau->vertex().z(),0,-20,20);
+	recImpactParamPCA_x=catchInfsAndBound(recTau->dxy_PCA().x(),0,0,1);
+	recImpactParamPCA_y=catchInfsAndBound(recTau->dxy_PCA().y(),0,0,1);
+	recImpactParamPCA_z=catchInfsAndBound(recTau->dxy_PCA().z(),0,-20,20);
+	recImpactParam=catchInfsAndBound(recTau->dxy(),0,-5,5);
+	recImpactParam3D=catchInfsAndBound(recTau->ip3d(),0,-100,100);
+	recImpactParamSign=catchInfsAndBound(recTau->dxy_Sig(),0,-100,100);
+	recImpactParamSign3D=catchInfsAndBound(recTau->ip3d_Sig(),0,-10000,10000);
 	//
 	recChi2DiffEvtVertex=0;
 	//
 	hasRecDecayVertex=recTau->hasSecondaryVertex();
 
-	recDecayDist_x=recTau->flightLength().x();
-	recDecayDist_y=recTau->flightLength().y();
-	recDecayDist_z=recTau->flightLength().z();
+	recDecayDist_x=catchInfsAndBound(recTau->flightLength().x(),0,-20,20);
+	recDecayDist_y=catchInfsAndBound(recTau->flightLength().y(),0,-20,20);
+	recDecayDist_z=catchInfsAndBound(recTau->flightLength().z(),0,-50,50);
 	//missing recDecayDistCov
-	recDecayDistSign=recTau->flightLengthSig();
+	recDecayDistSign=catchInfsAndBound(recTau->flightLengthSig(),0,-1000,1000);
 
 //recTau->decayMode()
-	recTauPtWeightedDetaStrip=pt_weighted_deta_strip(*recTau, recTau->decayMode());
-	recTauPtWeightedDphiStrip=pt_weighted_dphi_strip(*recTau, recTau->decayMode());
-	recTauPtWeightedDrSignal=pt_weighted_dr_signal(*recTau, recTau->decayMode());
-	recTauPtWeightedDrIsolation=pt_weighted_dr_iso(*recTau, recTau->decayMode());
+	recTauPtWeightedDetaStrip=catchInfsAndBound(pt_weighted_deta_strip(*recTau, recTau->decayMode()),0,0,1);
+	recTauPtWeightedDphiStrip=catchInfsAndBound(pt_weighted_dphi_strip(*recTau, recTau->decayMode()),0,0,1);
+	recTauPtWeightedDrSignal=catchInfsAndBound(pt_weighted_dr_signal(*recTau, recTau->decayMode()),0,0,1);
+	recTauPtWeightedDrIsolation=catchInfsAndBound(pt_weighted_dr_iso(*recTau, recTau->decayMode()),0,0,1);
 	recTauNphoton=n_photons_total(*recTau);
-	recTauEratio=recTau->ecalEnergy()/(recTau->ecalEnergy() + recTau->hcalEnergy());
-	recTauLeadingTrackChi2=recTau->leadingTrackNormChi2();
+	recTauEratio=catchInfsAndBound(recTau->ecalEnergy()/(recTau->ecalEnergy() + recTau->hcalEnergy()),0,0,1);
+	recTauLeadingTrackChi2=catchInfsAndBound(recTau->leadingTrackNormChi2(),0,0,100);
 	recTauNphotonSignal=recTau->signalGammaCands().size();
 	recTauNphotonIso=recTau->isolationGammaCands().size();
 	recTauNphotonTotal=recTau->signalGammaCands().size()+recTau->isolationGammaCands().size();
@@ -193,17 +194,18 @@ bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet,
 
 
 
-float ntuple_recTau::pt_weighted_dx(const pat::Tau& tau, int mode = 0, int var = 0, int decaymode = -1)const{
+float ntuple_recTau::pt_weighted_dx(const pat::Tau& tau, int mode , int var , int decaymode )const{
 
 	float sum_pt = 0.;
 	float sum_dx_pt = 0.;
 	float signalrad = std::max(0.05, std::min(0.1, 3./tau.pt()));
 	int is3prong = (decaymode==10);
 
-	const auto cands = tau.isolationGammaCands();
+	auto cands = tau.isolationGammaCands();
 	if(mode < 2)
-		cands=tau.signalGammaCands;
+		cands=tau.signalGammaCands();
 
+	if(cands.isNull()) return 0;
 
 	for (const auto& cand : cands) {
 		// only look at electrons/photons with pT > 0.5

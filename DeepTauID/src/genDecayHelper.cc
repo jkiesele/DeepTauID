@@ -6,7 +6,7 @@
 bool genDecayHelper::selectTau(const reco::GenParticle& genParticle)const{
 
 	if ( !genParticle.isPromptDecayed() ) return false;
-	if( ! abs(genParticle.pdgId()) == 15)return false;
+	if( ! (abs(genParticle.pdgId()) == 15))return false;
 	return true;
 }
 

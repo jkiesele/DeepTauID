@@ -8,6 +8,13 @@
 #ifndef DEEPTAU_DEEPTAUID_INTERFACE_GENDECAYHELPER_H_
 #define DEEPTAU_DEEPTAUID_INTERFACE_GENDECAYHELPER_H_
 
+
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "TMath.h"
+
+
 class genDecayHelper{
 	public:
 	genDecayHelper(){}
@@ -19,11 +26,9 @@ class genDecayHelper{
 		oneProng0Pi0,
 		oneProng1Pi0,
 		oneProng2Pi0,
-		oneProngOther,
 		threeProngOther,
 		threeProng0Pi0,
 		threeProng1Pi0,
-		threeProngOther,
 		rare
 	};
 
@@ -41,6 +46,8 @@ template<class T>
 void genDecayHelper::countDecayProducts(const T* genParticle,
 		int& numElectrons, int& numElecNeutrinos, int& numMuons, int& numMuNeutrinos,
 		int& numChargedHadrons, int& numPi0s, int& numOtherNeutralHadrons, int& numPhotons)const{
+
+	if(!genParticle)return;
 
 	int absPdgId = TMath::Abs(genParticle->pdgId());
 	int status   = genParticle->status();

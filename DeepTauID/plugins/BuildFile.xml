@@ -3,7 +3,7 @@
 <use name="FWCore/ParameterSet"/>
 <use name="DataFormats/PatCandidates"/>
 <use name="TrackingTools/IPTools"/>
-<use name="DeepNTuples/DeepNtuplizer"/>
+<use name="DeepTau/DeepTauID"/>
 <use name="FWCore/ServiceRegistry"/>
 <use name="CommonTools/UtilAlgos"/>
 <flags EDM_PLUGIN="1"/>

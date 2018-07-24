@@ -120,12 +120,21 @@ private:
 
 void ntuple_pfCands::readSetup(const edm::EventSetup& iSetup){
 
-	iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", builder);
+	//iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", builder);
 
 }
 
 void ntuple_pfCands::getInput(const edm::ParameterSet& iConfig){
 
+}
+
+
+float ntuple_pfCands::catchInfsAndBound_track(const pat::PackedCandidate* cand, const float& in,const float& replace_value,
+        const float& lowerbound, const float& upperbound,const float offset)const{
+	if(cand->hasTrackDetails())
+		return catchInfsAndBound(in,replace_value,lowerbound,upperbound,offset);
+	else
+		return replace_value;
 }
 
 
@@ -144,13 +153,14 @@ void ntuple_pfCands::initBranches(TTree* t){
 
 	ADDBRANCH(t,Cpfcan_fromPV);
 
-	ADDBRANCH(t,Cpfcan_vertexChi2);
-	ADDBRANCH(t,Cpfcan_vertexNdof);
-	ADDBRANCH(t,Cpfcan_vertexNormalizedChi2);
+	// empty ADDBRANCH(t,Cpfcan_vertexChi2);
+	// empty ADDBRANCH(t,Cpfcan_vertexNdof);
+	// empty ADDBRANCH(t,Cpfcan_vertexNormalizedChi2);
+
 	ADDBRANCH(t,Cpfcan_vertex_rho);
 	ADDBRANCH(t,Cpfcan_vertex_phirel);
 	ADDBRANCH(t,Cpfcan_vertex_etarel);
-	ADDBRANCH(t,Cpfcan_vertexRef_mass);
+	// empty ADDBRANCH(t,Cpfcan_vertexRef_mass);
 
 
 	ADDBRANCH(t,Cpfcan_dz);
@@ -180,7 +190,7 @@ void ntuple_pfCands::initBranches(TTree* t){
 
 	ADDBRANCH(t,Cpfcan_isMu);
 	ADDBRANCH(t,Cpfcan_isEl);
-
+	ADDBRANCH(t,Cpfcan_pdgID);
 
 	ADDBRANCH(t,Cpfcan_charge);
 
@@ -204,7 +214,7 @@ void ntuple_pfCands::initBranches(TTree* t){
 	ADDBRANCH(t,Npfcan_deltaR);
 	ADDBRANCH(t,Npfcan_isGamma);
 	ADDBRANCH(t,Npfcan_HadFrac);
-	ADDBRANCH(t,Npfcan_drminsv);
+
 }
 
 void ntuple_pfCands::clear(){
@@ -258,7 +268,7 @@ void ntuple_pfCands::clear(){
 
 	Cpfcan_isMu.clear();
 	Cpfcan_isEl.clear();
-
+	Cpfcan_pdgID.clear();
 	Cpfcan_charge.clear();
 
 
@@ -293,13 +303,15 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 
 	float etasign = 1.;
 	if (jet.eta()<0) etasign =-1.;
-	math::XYZVector jetDir = jet.momentum().Unit();
-	GlobalVector jetRefTrackDir(jet.px(),jet.py(),jet.pz());
+	//math::XYZVector jetDir = jet.momentum().Unit();
+	//GlobalVector jetRefTrackDir(jet.px(),jet.py(),jet.pz());
 	for (unsigned int i = 0; i <  jet.numberOfDaughters(); i++){
 		const pat::PackedCandidate* PackedCandidate_ = dynamic_cast<const pat::PackedCandidate*>(jet.daughter(i));
 		if(!PackedCandidate_)continue;
+		if(PackedCandidate_->pt()<0.75)continue;
 
 		if(PackedCandidate_->charge()!=0 ){
+			if(! PackedCandidate_->hasTrackDetails())continue;
 
 			Cpfcan_pt.push_back(PackedCandidate_->pt());
 			Cpfcan_eta.push_back(PackedCandidate_->eta());
@@ -309,15 +321,14 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Cpfcan_phirel.push_back(catchInfsAndBound(fabs(reco::deltaPhi(PackedCandidate_->phi(),jet.phi())),0,-2,0,-0.5));
 			Cpfcan_etarel.push_back(catchInfsAndBound(fabs(PackedCandidate_->eta()-jet.eta()),0,-2,0,-0.5));
 			Cpfcan_deltaR.push_back(catchInfsAndBound(reco::deltaR(*PackedCandidate_,jet),0,-0.6,0,-0.6));
-			Cpfcan_dxy.push_back(catchInfsAndBound(fabs(PackedCandidate_->dxy()),0,-50,50));
 
 
-			Cpfcan_dxyerrinv.push_back(catchInfsAndBound(1/PackedCandidate_->dxyError(),0,-1, 10000.));
+			Cpfcan_dxy.push_back(catchInfsAndBound_track(PackedCandidate_, fabs(PackedCandidate_->dxy()),0,-50,50));
+			Cpfcan_dxyerrinv.push_back(catchInfsAndBound_track(PackedCandidate_,1/PackedCandidate_->dxyError(),0,-1, 10000.));
+			Cpfcan_dxysig.push_back(catchInfsAndBound_track(PackedCandidate_,fabs(PackedCandidate_->dxy()/PackedCandidate_->dxyError()),0.,-2000,2000));
+			Cpfcan_dz.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->dz(),0,-100,100));
 
-			Cpfcan_dxysig.push_back(catchInfsAndBound(fabs(PackedCandidate_->dxy()/PackedCandidate_->dxyError()),0.,-2000,2000));
 
-
-			Cpfcan_dz.push_back(PackedCandidate_->dz());
 			Cpfcan_VTX_ass.push_back(PackedCandidate_->pvAssociationQuality());
 
 			Cpfcan_fromPV.push_back(PackedCandidate_->fromPV());
@@ -326,10 +337,10 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Cpfcan_vertexNdof.push_back(PackedCandidate_->vertexNdof());
 			//divided
 			Cpfcan_vertexNormalizedChi2.push_back(PackedCandidate_->vertexNormalizedChi2());
-			Cpfcan_vertex_rho.push_back(catchInfsAndBound(PackedCandidate_->vertex().rho(),0,-1,50));
-			Cpfcan_vertex_phirel.push_back(reco::deltaPhi(PackedCandidate_->vertex().phi(),jet.phi()));
-			Cpfcan_vertex_etarel.push_back(etasign*(PackedCandidate_->vertex().eta()-jet.eta()));
-			Cpfcan_vertexRef_mass.push_back(PackedCandidate_->vertexRef()->p4().M());
+			Cpfcan_vertex_rho.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->vertex().rho(),0,-1,50));
+			Cpfcan_vertex_phirel.push_back(catchInfsAndBound_track(PackedCandidate_,reco::deltaPhi(PackedCandidate_->vertex().phi(),jet.phi()),0,0,10));
+			Cpfcan_vertex_etarel.push_back(catchInfsAndBound_track(PackedCandidate_,etasign*(PackedCandidate_->vertex().eta()-jet.eta()),0,-5,5));
+			Cpfcan_vertexRef_mass.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->vertexRef()->p4().M(),0,0,10));
 
 
 			Cpfcan_puppiw.push_back(PackedCandidate_->puppiWeight());
@@ -355,16 +366,15 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 
 			Cpfcan_isMu.push_back(abs(PackedCandidate_->pdgId())==13);
 			Cpfcan_isEl.push_back(abs(PackedCandidate_->pdgId())==11);
+			Cpfcan_pdgID.push_back(PackedCandidate_->pdgId());
 
 			Cpfcan_charge.push_back(PackedCandidate_->charge());
-			Cpfcan_lostInnerHits.push_back(catchInfs(PackedCandidate_->lostInnerHits(),2));
-			Cpfcan_numberOfPixelHits.push_back(catchInfs(PackedCandidate_->numberOfPixelHits(),-1));
+			Cpfcan_lostInnerHits.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->lostInnerHits(),2,0,10));
+			Cpfcan_numberOfPixelHits.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->numberOfPixelHits(),-1,0,10));
 
-			const reco::Track & PseudoTrack =  PackedCandidate_->pseudoTrack();
 
-			Cpfcan_chi2.push_back(catchInfsAndBound(PseudoTrack.normalizedChi2(),300,-1,300));
-			//for some reason this returns the quality enum not a mask.
-			Cpfcan_quality.push_back(PseudoTrack.qualityMask());
+			Cpfcan_chi2.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->pseudoTrack().normalizedChi2(),300,-1,300));
+			Cpfcan_quality.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->pseudoTrack().qualityMask(),0,0,100));
 
 
 		}

@@ -9,6 +9,7 @@
 #define DEEPTAU_DEEPTAUID_INTERFACE_NTUPLE_GENINFO_H_
 
 #include "ntuple_content.h"
+#include "genDecayHelper.h"
 /**
  * Contains gen information for tau / jet
  */
@@ -31,6 +32,9 @@ public:
     void clear();
 
 private:
+
+    genDecayHelper dec_helper_;
+
     float minpt_,maxeta_;
 
     //branches

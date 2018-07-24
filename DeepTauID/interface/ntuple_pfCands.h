@@ -11,6 +11,11 @@
 
 
 #include "ntuple_content.h"
+
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include <vector>
+
 /**
  * Contains individual information of pf Candidates around the tau / in the tau/jet
  */
@@ -21,7 +26,7 @@ public:
 
 	void getInput(const edm::ParameterSet& iConfig);
 	void initBranches(TTree* );
-	void readEvent(const edm::Event& iEvent);
+	void readEvent(const edm::Event& iEvent){}
 	void readSetup(const edm::EventSetup& iSetup);
 	//use either of these functions
 
@@ -30,6 +35,11 @@ public:
 	bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau);
 
 private:
+
+	float catchInfsAndBound_track(const pat::PackedCandidate* cand, const float& in,const float& replace_value,
+            const float& lowerbound, const float& upperbound,const float offset=0)const;
+
+	edm::ESHandle<TransientTrackBuilder> builder;
 
 	float nCpfcan;
 	std::vector<float>   Cpfcan_pt;
@@ -81,6 +91,7 @@ private:
 
 	std::vector<float>  Cpfcan_isMu;
 	std::vector<float>  Cpfcan_isEl;
+	std::vector<float>  Cpfcan_pdgID;
 
 	std::vector<float>  Cpfcan_charge;
 
