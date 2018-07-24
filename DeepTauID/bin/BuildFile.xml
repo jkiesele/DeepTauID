@@ -1,0 +1,16 @@
+
+<use   name="DeepNTuples/DeepNtuplizer"/>
+<use   name="root"/>
+<use   name="rootgraphics"/>
+
+<bin name="mergeSamples_parallel" file="mergeSamples_parallel.cc" />
+
+<bin name="createMergeList" file="createMergeList.cc" />
+<bin name="merge" file="merge.cc" />
+<bin name="count" file="count.cc" />
+
+<bin name="printBranches" file="printBranches.cc" />
+<bin name="ntupleConverter" file="ntupleConverter.cc" />
+<bin name="weightDistribution" file="weightDistribution.cc" />
+
+<bin name="checkFileList" file="checkFileList.cc" />
