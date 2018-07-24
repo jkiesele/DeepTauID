@@ -9,7 +9,7 @@
 #define DEEPTAU_DEEPTAUID_INTERFACE_NTUPLE_RECTAU_H_
 
 
-
+#include "ntuple_content.h"
 /**
  * Contains gen information for the reco tau object (hi-level variables)
  */

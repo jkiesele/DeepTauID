@@ -8,6 +8,7 @@
 #ifndef DEEPTAU_DEEPTAUID_INTERFACE_NTUPLE_JETINFO_H_
 #define DEEPTAU_DEEPTAUID_INTERFACE_NTUPLE_JETINFO_H_
 
+#include "ntuple_content.h"
 /**
  *
  * Contains global jet information

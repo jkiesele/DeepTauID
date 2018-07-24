@@ -59,10 +59,10 @@
 struct MagneticField;
 
 
-class DeepNtuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
+class DeepTauNTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 public:
-    explicit DeepNtuplizer(const edm::ParameterSet&);
-    ~DeepNtuplizer();
+    explicit DeepTauNTuplizer(const edm::ParameterSet&);
+    ~DeepTauNTuplizer();
 
     static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -79,6 +79,7 @@ private:
 
 
     // ----------member data ---------------------------
+    edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
     edm::EDGetTokenT<edm::View<pat::Jet> >      jetToken_;
     edm::EDGetTokenT<edm::View<pat::Tau> >      tauToken_;
     edm::EDGetTokenT<edm::View<reco::GenParticle> >      genToken_;
@@ -98,12 +99,13 @@ private:
 
 };
 
-DeepNtuplizer::DeepNtuplizer(const edm::ParameterSet& iConfig):
-                                    jetToken_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"))),
-									tauToken_(consumes<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("taus"))),
-                                    genToken_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genparticles"))),
-                                    rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoInfo"))),
-									tree_(0)
+DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
+				vtxToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
+				jetToken_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"))),
+				tauToken_(consumes<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("taus"))),
+				genToken_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genparticles"))),
+				rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoInfo"))),
+				tree_(0)
 {
     /*
      *  Initialise the modules here
@@ -155,14 +157,14 @@ DeepNtuplizer::DeepNtuplizer(const edm::ParameterSet& iConfig):
 }
 
 
-DeepNtuplizer::~DeepNtuplizer()
+DeepTauNTuplizer::~DeepTauNTuplizer()
 {
     return;
     for(auto& m:modules_)
         delete m;
 }
 
-pat::Jet* DeepNtuplizer::findMatchingJet(const reco::GenParticle* tau, const edm::Handle<edm::View<pat::Jet> >& jets)const{
+pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, const edm::Handle<edm::View<pat::Jet> >& jets)const{
 	pat::Jet* ret=0;
 	double mindr=0.3;
 	for(size_t t=0;t<jets->size();t++){
@@ -172,7 +174,7 @@ pat::Jet* DeepNtuplizer::findMatchingJet(const reco::GenParticle* tau, const edm
 	}
 	return ret;
 }
-pat::Tau* DeepNtuplizer::findMatchingRecTau(const reco::GenParticle* gentau, const edm::Handle<edm::View<pat::Tau> >& taus)const{
+pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::GenParticle* gentau, const edm::Handle<edm::View<pat::Tau> >& taus)const{
 	pat::Tau* ret=0;
 	double mindr=0.3;
 	for(size_t t=0;t<taus->size();t++){
@@ -182,7 +184,7 @@ pat::Tau* DeepNtuplizer::findMatchingRecTau(const reco::GenParticle* gentau, con
 	}
 	return ret;
 }
-pat::Tau* DeepNtuplizer::findMatchingRecTau(const reco::Jet* jet, const edm::Handle<edm::View<pat::Tau> >& taus)const{
+pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::Jet* jet, const edm::Handle<edm::View<pat::Tau> >& taus)const{
 	pat::Tau* ret=0;
 	double mindr=0.3;
 	for(size_t t=0;t<taus->size();t++){
@@ -196,11 +198,14 @@ pat::Tau* DeepNtuplizer::findMatchingRecTau(const reco::Jet* jet, const edm::Han
 
 // ------------ method called for each event  ------------
 void
-DeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
     //global info
 
+    edm::Handle<reco::VertexCollection> vertices;
+    iEvent.getByToken(vtxToken_, vertices);
+    if (vertices->empty()) return;
 
     edm::Handle<double> rhoInfo;
     iEvent.getByToken(rhoToken_,rhoInfo);
@@ -214,9 +219,15 @@ DeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<edm::View<reco::GenParticle> > gens;
     iEvent.getByToken(genToken_, gens);
 
+    edm::Handle<double> rhoInfo;
+    iEvent.getByToken(rhoToken_,rhoInfo);
+
     for(auto& m:modules_){
+    	m->clear();
+        m->setPrimaryVertices(vertices.product());
         m->readSetup(iSetup);
         m->readEvent(iEvent);
+        m->setRhoInfo(rhoInfo.product());
     }
 
 
@@ -273,7 +284,7 @@ DeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void
-DeepNtuplizer::beginJob()
+DeepTauNTuplizer::beginJob()
 {
     if( !fs ){
         throw edm::Exception( edm::errors::Configuration,
@@ -288,7 +299,7 @@ DeepNtuplizer::beginJob()
 
 // ------------ method called once each job just after ending the event loop  ------------
 void
-DeepNtuplizer::endJob()
+DeepTauNTuplizer::endJob()
 {
 
 
@@ -296,7 +307,7 @@ DeepNtuplizer::endJob()
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-DeepNtuplizer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+DeepTauNTuplizer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
     //The following says we do not know what parameters are allowed so do no validation
     // Please change this to state exactly what you do use, even if it is no parameters
     edm::ParameterSetDescription desc;
@@ -305,4 +316,4 @@ DeepNtuplizer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(DeepNtuplizer);
+DEFINE_FWK_MODULE(DeepTauNTuplizer);

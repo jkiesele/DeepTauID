@@ -4,6 +4,7 @@ deepntuplizer = cms.EDAnalyzer('DeepNtuplizer',
                                 jets       = cms.InputTag("slimmedJets"),
                                 taus       = cms.InputTag("slimmedTaus"),
                                 genparticles = cms.InputTag("prunedGenParticles"),
+                                vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                 
                                 minGenPt  = cms.double(5),
                                 maxGenEta = cms.double(3),

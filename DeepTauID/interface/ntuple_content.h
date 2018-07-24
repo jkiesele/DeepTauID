@@ -49,6 +49,10 @@ public:
 
     void setIsRead(bool isread){read_=isread;}
 
+    void setPrimaryVertices(const reco::VertexCollection* v){
+            vertices_=v;
+        }
+
     std::vector<TString> getListOfBranches(){
         if(allbranches_.size())
             return allbranches_;
@@ -59,12 +63,15 @@ public:
         }
     }
 
+    void setRhoInfo(const double* r){rhoInfo_=r;}
+    const double* rhoInfo()const{return  rhoInfo_;}
+    const reco::VertexCollection * vertices()const{return vertices_;}
+
     static bool useoffsets;
     static bool debug;
 
 protected:
 
-    const double* rhoInfo()const;
 
 
     template <class T>
@@ -93,7 +100,7 @@ protected:
     }
 
 private:
-
+    const reco::VertexCollection* vertices_;
     const double* rhoInfo_;
     bool read_;
     std::vector<TString> allbranches_;
