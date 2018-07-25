@@ -3,13 +3,19 @@
 #include "../interface/genDecayHelper.h"
 
 
-bool genDecayHelper::selectTau(const reco::GenParticle& genParticle)const{
+bool genDecayHelper::isPromptTau(const reco::GenParticle& genParticle)const{
 
 	if ( !genParticle.isPromptDecayed() ) return false;
 	if( ! (abs(genParticle.pdgId()) == 15))return false;
 	return true;
 }
 
+bool genDecayHelper::isPromptLepton(const reco::GenParticle& genParticle)const{
+
+	if ( !genParticle.isPromptDecayed() ) return false;
+	if(  abs(genParticle.pdgId()) == 15 || abs(genParticle.pdgId()) == 13 || abs(genParticle.pdgId()) == 11)return true;
+	return false;
+}
 
 
 genDecayHelper::decayModes genDecayHelper::getGenTauDecayMode(const reco::GenParticle* genTau)const{
@@ -63,4 +69,5 @@ genDecayHelper::decayModes genDecayHelper::getGenTauDecayMode(const reco::GenPar
 				default:
 					return rare;
 		}
+		return other;
 }

@@ -41,7 +41,7 @@ private:
     float recJet_mass;
     float recJetLooseId;
 
-
+    int hasGenMatch;
 
 
 };

@@ -29,7 +29,8 @@ class genDecayHelper{
 		threeProngOther,
 		threeProng0Pi0,
 		threeProng1Pi0,
-		rare
+		rare,
+		other
 	};
 
 	decayModes getGenTauDecayMode(const reco::GenParticle* genTau)const;
@@ -39,7 +40,8 @@ class genDecayHelper{
 			int& numElectrons, int& numElecNeutrinos, int& numMuons, int& numMuNeutrinos,
 			int& numChargedHadrons, int& numPi0s, int& numOtherNeutralHadrons, int& numPhotons) const;
 
-	bool selectTau(const reco::GenParticle& )const;
+	bool isPromptTau(const reco::GenParticle& )const;
+	bool isPromptLepton(const reco::GenParticle& )const;
 };
 
 template<class T>
@@ -71,9 +73,9 @@ void genDecayHelper::countDecayProducts(const T* genParticle,
 	} else {
 		unsigned numDaughters = genParticle->numberOfDaughters();
 		for ( unsigned iDaughter = 0; iDaughter < numDaughters; ++iDaughter ) {
-			const pat::PackedGenParticle* daughter = dynamic_cast<const pat::PackedGenParticle*>(genParticle->daughter(iDaughter));
+			const reco::GenParticle* daughter = dynamic_cast<const reco::GenParticle*>(genParticle->daughter(iDaughter));
 
-			countDecayProducts<pat::PackedGenParticle>(daughter,
+			countDecayProducts<reco::GenParticle>(daughter,
 					numElectrons, numElecNeutrinos, numMuons, numMuNeutrinos,
 					numChargedHadrons, numPi0s, numOtherNeutralHadrons, numPhotons);
 		}

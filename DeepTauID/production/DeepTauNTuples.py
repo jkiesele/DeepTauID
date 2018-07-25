@@ -36,6 +36,7 @@ if hasattr(sys, "argv"):
 
 process = cms.Process("DNNFiller")
 
+process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load("Configuration.EventContent.EventContent_cff")
 process.load('Configuration.StandardSequences.Services_cff')

@@ -30,12 +30,30 @@ void ntuple_genInfo::initBranches(TTree* t){
 	ADDBRANCH(t, isTau);
 	ADDBRANCH(t, isNoTau);
 
+
+	ADDBRANCH(t,  isElectron);
+	ADDBRANCH(t,  isMuon);
+
 }
 
 bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau){
+
 	if(genTau){
-		isTau=1;
-		isNoTau=0;
+
+
+		bool istau = dec_helper_.isPromptTau(*genTau);
+		genDecayHelper::decayModes dec=dec_helper_.getGenTauDecayMode(genTau);
+		istau &=  !(dec == genDecayHelper::electron || dec == genDecayHelper::muon);
+
+		//these would be a fake coming from electron -> fill as electron/muon
+
+		isTau=istau;
+		isNoTau=!istau;
+
+
+		isElectron = (dec == genDecayHelper::electron || abs(genTau->pdgId()) == 11);
+		isMuon = (dec == genDecayHelper::muon || abs(genTau->pdgId()) == 13);
+
 
 
 		// TBI FIXME
@@ -50,11 +68,9 @@ bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 		if(recJet)
 			genTauDeltaR=reco::deltaR(recJet->p4(),genTau->p4());
 
-		genTauMatch=1;
+		genTauMatch=isTau;
 		genTauDecayMode=dec_helper_.getGenTauDecayMode(genTau);
 
-		if(genTau_pt<minpt_)return false;
-		if(fabs(genTau_eta)>maxeta_) return false;
 	}
 	else{
 		clear();
@@ -66,8 +82,6 @@ bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 
 
 ntuple_genInfo::ntuple_genInfo():ntuple_content(){
-	minpt_=1;
-	maxeta_=3.1;
 	clear();
 }
 
@@ -92,4 +106,6 @@ void ntuple_genInfo::clear(){
 
 	isTau=0;
 	isNoTau=1;
+	isElectron=0;
+	isMuon=0;
 }

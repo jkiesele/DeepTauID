@@ -25,6 +25,7 @@ void ntuple_JetInfo::initBranches(TTree* t){
     ADDBRANCH(t,recJet_phi);
     ADDBRANCH(t,recJet_mass);
     ADDBRANCH(t,recJetLooseId);
+    ADDBRANCH(t,hasGenMatch);
 }
 void ntuple_JetInfo::clear(){
 
@@ -33,6 +34,7 @@ void ntuple_JetInfo::clear(){
     recJet_phi=0;
     recJet_mass=0;
     recJetLooseId=0;
+    hasGenMatch=0;
 }
 bool ntuple_JetInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau){
 	if(!recJet){
@@ -45,6 +47,11 @@ bool ntuple_JetInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 	recJet_mass=recJet->mass();
 
 	recJetLooseId = ( (*loosePFJetIdAlgo_)(*recJet) ) ? 1 : 0;
+
+	hasGenMatch=0;
+	if(recJet->genJet()){
+		hasGenMatch=1;
+	}
 
 	return true;
 }

@@ -120,7 +120,7 @@ private:
 
 void ntuple_pfCands::readSetup(const edm::EventSetup& iSetup){
 
-	//iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", builder);
+	iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", builder);
 
 }
 
@@ -170,23 +170,21 @@ void ntuple_pfCands::initBranches(TTree* t){
 	ADDBRANCH(t,Cpfcan_dxysig);
 
 
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackMomentum);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackEta);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackEtaRel);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackPtRel);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackPPar);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackDeltaR);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackPtRatio);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackPParRatio);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackSip3dVal);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackSip3dSig);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackSip2dVal);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackSip2dSig);
-    //
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackDecayLen);
-    //
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackJetDistVal);
-	//ADDBRANCH(t,Cpfcan_BtagPf_trackJetDistSig);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackMomentum);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackEta);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackEtaRel);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackPtRel);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackPPar);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackDeltaR);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackPtRatio);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackPParRatio);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackSip3dVal);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackSip3dSig);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackSip2dVal);
+	ADDBRANCH(t,Cpfcan_BtagPf_trackSip2dSig);
+
+
+	ADDBRANCH(t,Cpfcan_BtagPf_trackJetDistVal);
 
 	ADDBRANCH(t,Cpfcan_isMu);
 	ADDBRANCH(t,Cpfcan_isEl);
@@ -248,23 +246,21 @@ void ntuple_pfCands::clear(){
 	Cpfcan_dxysig.clear();
 
 
-	//Cpfcan_BtagPf_trackMomentum.clear();
-	//Cpfcan_BtagPf_trackEta.clear();
-	//Cpfcan_BtagPf_trackEtaRel.clear();
-	//Cpfcan_BtagPf_trackPtRel.clear();
-	//Cpfcan_BtagPf_trackPPar.clear();
-	//Cpfcan_BtagPf_trackDeltaR.clear();
-	//Cpfcan_BtagPf_trackPtRatio.clear();
-	//Cpfcan_BtagPf_trackPParRatio.clear();
-	//Cpfcan_BtagPf_trackSip3dVal.clear();
-	//Cpfcan_BtagPf_trackSip3dSig.clear();
-	//Cpfcan_BtagPf_trackSip2dVal.clear();
-	//Cpfcan_BtagPf_trackSip2dSig.clear();
-    //
-	//Cpfcan_BtagPf_trackDecayLen.clear();
-    //
-	//Cpfcan_BtagPf_trackJetDistVal.clear();
-	//Cpfcan_BtagPf_trackJetDistSig.clear();
+	Cpfcan_BtagPf_trackMomentum.clear();
+	Cpfcan_BtagPf_trackEta.clear();
+	Cpfcan_BtagPf_trackEtaRel.clear();
+	Cpfcan_BtagPf_trackPtRel.clear();
+	Cpfcan_BtagPf_trackPPar.clear();
+	Cpfcan_BtagPf_trackDeltaR.clear();
+	Cpfcan_BtagPf_trackPtRatio.clear();
+	Cpfcan_BtagPf_trackPParRatio.clear();
+	Cpfcan_BtagPf_trackSip3dVal.clear();
+	Cpfcan_BtagPf_trackSip3dSig.clear();
+	Cpfcan_BtagPf_trackSip2dVal.clear();
+	Cpfcan_BtagPf_trackSip2dSig.clear();
+
+
+	Cpfcan_BtagPf_trackJetDistVal.clear();
 
 	Cpfcan_isMu.clear();
 	Cpfcan_isEl.clear();
@@ -303,8 +299,11 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 
 	float etasign = 1.;
 	if (jet.eta()<0) etasign =-1.;
-	//math::XYZVector jetDir = jet.momentum().Unit();
-	//GlobalVector jetRefTrackDir(jet.px(),jet.py(),jet.pz());
+	math::XYZVector jetDir = jet.momentum().Unit();
+	GlobalVector jetRefTrackDir(jet.px(),jet.py(),jet.pz());
+
+	TrackInfoBuilder trackinfo(builder);
+
 	for (unsigned int i = 0; i <  jet.numberOfDaughters(); i++){
 		const pat::PackedCandidate* PackedCandidate_ = dynamic_cast<const pat::PackedCandidate*>(jet.daughter(i));
 		if(!PackedCandidate_)continue;
@@ -346,23 +345,22 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Cpfcan_puppiw.push_back(PackedCandidate_->puppiWeight());
 
 
-			//trackinfo.buildTrackInfo(PackedCandidate_,jetDir,jetRefTrackDir,pv);
-            //
-			//Cpfcan_BtagPf_trackMomentum.push_back(   =catchInfsAndBound(trackinfo.getTrackMomentum(),0,0 ,1000);
-			//Cpfcan_BtagPf_trackEta.push_back(        =catchInfsAndBound(trackinfo.getTrackEta()   ,  0,-5,5);
-			//Cpfcan_BtagPf_trackEtaRel.push_back(     =catchInfsAndBound(trackinfo.getTrackEtaRel(),  0,-5,15);
-			//Cpfcan_BtagPf_trackPtRel.push_back(      =catchInfsAndBound(trackinfo.getTrackPtRel(),   0,-1,4);
-			//Cpfcan_BtagPf_trackPPar.push_back(       =catchInfsAndBound(trackinfo.getTrackPPar(),    0,-1e5,1e5 );
-			//Cpfcan_BtagPf_trackDeltaR.push_back(     =catchInfsAndBound(trackinfo.getTrackDeltaR(),  0,-5,5 );
-			//Cpfcan_BtagPf_trackPtRatio.push_back(    =catchInfsAndBound(trackinfo.getTrackPtRatio(), 0,-1,10 );
-			//Cpfcan_BtagPf_trackPParRatio.push_back(  =catchInfsAndBound(trackinfo.getTrackPParRatio(),0,-10,100);
-			//Cpfcan_BtagPf_trackSip3dVal.push_back(   =catchInfsAndBound(trackinfo.getTrackSip3dVal(), 0, -1,1e5 );
-			//Cpfcan_BtagPf_trackSip3dSig.push_back(   =catchInfsAndBound(trackinfo.getTrackSip3dSig(), 0, -1,4e4 );
-			//Cpfcan_BtagPf_trackSip2dVal.push_back(   =catchInfsAndBound(trackinfo.getTrackSip2dVal(), 0, -1,70 );
-			//Cpfcan_BtagPf_trackSip2dSig.push_back(   =catchInfsAndBound(trackinfo.getTrackSip2dSig(), 0, -1,4e4 );
-			//Cpfcan_BtagPf_trackDecayLen.push_back(   =0;
-			//Cpfcan_BtagPf_trackJetDistVal.push_back( =catchInfsAndBound(trackinfo.getTrackJetDistVal(),0,-20,1 );
-			//Cpfcan_BtagPf_trackJetDistSig.push_back( =catchInfsAndBound(trackinfo.getTrackJetDistSig(),0,-1,1e5 );
+			trackinfo.buildTrackInfo(PackedCandidate_,jetDir,jetRefTrackDir,vertices()->at(0));
+
+			Cpfcan_BtagPf_trackMomentum.push_back(catchInfsAndBound(trackinfo.getTrackMomentum(),0,0 ,1000));
+			Cpfcan_BtagPf_trackEta.push_back(catchInfsAndBound(trackinfo.getTrackEta()   ,  0,-5,5));
+			Cpfcan_BtagPf_trackEtaRel.push_back(     catchInfsAndBound(trackinfo.getTrackEtaRel(),  0,-5,15));
+			Cpfcan_BtagPf_trackPtRel.push_back(      catchInfsAndBound(trackinfo.getTrackPtRel(),   0,-1,4));
+			Cpfcan_BtagPf_trackPPar.push_back(       catchInfsAndBound(trackinfo.getTrackPPar(),    0,-1e5,1e5 ));
+			Cpfcan_BtagPf_trackDeltaR.push_back(     catchInfsAndBound(trackinfo.getTrackDeltaR(),  0,-5,5 ));
+			Cpfcan_BtagPf_trackPtRatio.push_back(    catchInfsAndBound(trackinfo.getTrackPtRatio(), 0,-1,10 ));
+			Cpfcan_BtagPf_trackPParRatio.push_back(  catchInfsAndBound(trackinfo.getTrackPParRatio(),0,-10,100));
+			Cpfcan_BtagPf_trackSip3dVal.push_back(   catchInfsAndBound(trackinfo.getTrackSip3dVal(), 0, -1,1e5 ));
+			Cpfcan_BtagPf_trackSip3dSig.push_back(   catchInfsAndBound(trackinfo.getTrackSip3dSig(), 0, -1,4e4 ));
+			Cpfcan_BtagPf_trackSip2dVal.push_back(   catchInfsAndBound(trackinfo.getTrackSip2dVal(), 0, -1,70 ));
+			Cpfcan_BtagPf_trackSip2dSig.push_back(   catchInfsAndBound(trackinfo.getTrackSip2dSig(), 0, -1,4e4 ));
+
+			Cpfcan_BtagPf_trackJetDistVal.push_back( catchInfsAndBound(trackinfo.getTrackJetDistVal(),0,-20,1 ));
 
 			Cpfcan_isMu.push_back(abs(PackedCandidate_->pdgId())==13);
 			Cpfcan_isEl.push_back(abs(PackedCandidate_->pdgId())==11);

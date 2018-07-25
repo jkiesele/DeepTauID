@@ -85,7 +85,10 @@ private:
     edm::EDGetTokenT<edm::View<reco::GenParticle> >      genToken_;
     edm::EDGetTokenT<double> rhoToken_;
 
-    std::string t_qgtagger;
+    double gentau_minpt_;
+    double gentau_maxeta_;
+    double jet_minpt_;
+	double jet_maxeta_;
 
     edm::Service<TFileService> fs;
     TTree *tree_;
@@ -112,6 +115,12 @@ DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
      *  Everything else does not need to be changed if
      *  modules don't interact.
      */
+
+    gentau_minpt_=18;
+    gentau_maxeta_=3;
+    jet_minpt_=20;
+	jet_maxeta_=3;
+
 
 	// prunedGenParticles
 
@@ -262,23 +271,25 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     genDecayHelper dec_helper;
     for(auto p: gens){
 
-    	if(!dec_helper.selectTau(*p))continue;
-    	genDecayHelper::decayModes dec=dec_helper.getGenTauDecayMode(p);
-    	if(dec == genDecayHelper::electron || dec == genDecayHelper::muon) continue;
+    	// this also allows electrons and muons and tau decays to electrons and muons - later flagged as !isTau
+    	if(!dec_helper.isPromptLepton(*p))continue;
 
     	const pat::Jet * jet = findMatchingJet(p,jets);
+		tauJets.push_back(jet);
+
     	const pat::Tau * rectau = findMatchingRecTau(p,taus);
 
+    	if(jet && (jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_)) jet=0;
 
+    	if(dec_helper.isPromptTau(*p) &&( p->pt() < gentau_minpt_ || fabs(p->eta())> gentau_maxeta_)) continue;
 
     	bool writetau=true;
     	for(auto& m:modules_){
-    		if(! m->fillBranches(rectau,jet,p)){
+    		if(! m->fillBranches(rectau,jet,p)){ //MAKE TAU GEN CUTS HERE
     			writetau=false;
     		}
     	}
     	if(writetau){
-    		tauJets.push_back(jet);
     		tree_->Fill();
     	}
 
@@ -291,12 +302,15 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     	if(std::find(tauJets.begin(),tauJets.end(),jet) != tauJets.end()) continue;
 
     	//these have no gen Tau // maybe a fake reco tau
-    	reco::GenParticle * notau=0;
+    	reco::GenParticle * nolepton=0;
     	const pat::Tau * rectau = findMatchingRecTau(jet,taus);
 
+    	if(jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_) jet=0;
+
+    	// the implicit cuts that CAN be implemented in fillBranches are NOT used here
     	bool writejet=true;
     	for(auto& m:modules_){
-    		if(! m->fillBranches(rectau,jet,notau)){
+    		if(! m->fillBranches(rectau,jet,nolepton)){
     			writejet=false;
     		}
     	}

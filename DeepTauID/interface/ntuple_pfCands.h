@@ -70,24 +70,21 @@ private:
 	std::vector<float>   Cpfcan_dxyerrinv;
 	std::vector<float>   Cpfcan_dxysig;
 
+	std::vector<float>  Cpfcan_BtagPf_trackMomentum;
+	std::vector<float>  Cpfcan_BtagPf_trackEta;
+	std::vector<float>  Cpfcan_BtagPf_trackEtaRel;
+	std::vector<float>  Cpfcan_BtagPf_trackPtRel;
+	std::vector<float>  Cpfcan_BtagPf_trackPPar;
+	std::vector<float>  Cpfcan_BtagPf_trackDeltaR;
+	std::vector<float>  Cpfcan_BtagPf_trackPtRatio;
+	std::vector<float>  Cpfcan_BtagPf_trackPParRatio;
+	std::vector<float>  Cpfcan_BtagPf_trackSip3dVal;
+	std::vector<float>  Cpfcan_BtagPf_trackSip3dSig;
+	std::vector<float>  Cpfcan_BtagPf_trackSip2dVal;
+	std::vector<float>  Cpfcan_BtagPf_trackSip2dSig;
 
-	//std::vector<float>  Cpfcan_BtagPf_trackMomentum;
-	//std::vector<float>  Cpfcan_BtagPf_trackEta;
-	//std::vector<float>  Cpfcan_BtagPf_trackEtaRel;
-	//std::vector<float>  Cpfcan_BtagPf_trackPtRel;
-	//std::vector<float>  Cpfcan_BtagPf_trackPPar;
-	//std::vector<float>  Cpfcan_BtagPf_trackDeltaR;
-	//std::vector<float>  Cpfcan_BtagPf_trackPtRatio;
-	//std::vector<float>  Cpfcan_BtagPf_trackPParRatio;
-	//std::vector<float>  Cpfcan_BtagPf_trackSip3dVal;
-	//std::vector<float>  Cpfcan_BtagPf_trackSip3dSig;
-	//std::vector<float>  Cpfcan_BtagPf_trackSip2dVal;
-	//std::vector<float>  Cpfcan_BtagPf_trackSip2dSig;
-    //
-	//std::vector<float>  Cpfcan_BtagPf_trackDecayLen;
-    //
-	//std::vector<float>  Cpfcan_BtagPf_trackJetDistVal;
-	//std::vector<float>  Cpfcan_BtagPf_trackJetDistSig;
+
+	std::vector<float>  Cpfcan_BtagPf_trackJetDistVal;
 
 	std::vector<float>  Cpfcan_isMu;
 	std::vector<float>  Cpfcan_isEl;

@@ -26,8 +26,6 @@ public:
 
     bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau);
 
-    void setMinPt(const float pt){minpt_=pt;}
-    void setMaxEta(const float eta){maxeta_=eta;}
 
     void clear();
 
@@ -35,7 +33,6 @@ private:
 
     genDecayHelper dec_helper_;
 
-    float minpt_,maxeta_;
 
     //branches
     float genEvtWeight;
@@ -58,6 +55,9 @@ private:
 
     int isTau;
     int isNoTau;
+
+    int isElectron;
+    int isMuon;
 
 
 };
