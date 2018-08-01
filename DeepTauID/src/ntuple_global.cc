@@ -9,12 +9,18 @@
 #include "../interface/ntuple_global.h"
 #include "../interface/ntuple_content.h"
 
-void ntuple_global::clear(){
+
+
+ntuple_global::ntuple_global():ntuple_content(){
 	event=0;
 	run=0;
 	lumi=0;
 	numPileUp=0;
 	rho=0;
+}
+
+void ntuple_global::clear(){
+	return ; //do not clear for each tau/jet
 }
 
 void ntuple_global::initBranches(TTree* t){

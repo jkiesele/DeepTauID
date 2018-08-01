@@ -69,6 +69,18 @@ void ntuple_recTau::clear(){
 	recTauLeadPFChargedHadrCand_M=0;
 
 
+    chargedIsoPtSum=0;
+    neutralIsoPtSum=0;
+    puCorrPtSum=0;
+    neutralIsoPtSumWeight=0;
+    footprintCorrection=0;
+    photonPtSumOutsideSignalCone=0;
+    chargedIsoPtSumdR03=0;
+    neutralIsoPtSumdR03=0;
+    neutralIsoPtSumWeightdR03=0;
+    footprintCorrectiondR03=0;
+    photonPtSumOutsideSignalConedR03=0;
+
 }
 
 void ntuple_recTau::initBranches(TTree* t){
@@ -121,6 +133,19 @@ void ntuple_recTau::initBranches(TTree* t){
 	ADDBRANCH(t,recTauLeadPFChargedHadrCand_eta);
 	ADDBRANCH(t,recTauLeadPFChargedHadrCand_phi);
 	ADDBRANCH(t,recTauLeadPFChargedHadrCand_M);
+
+
+    ADDBRANCH(t, chargedIsoPtSum);
+    ADDBRANCH(t, neutralIsoPtSum);
+    ADDBRANCH(t, puCorrPtSum);
+    ADDBRANCH(t, neutralIsoPtSumWeight);
+    ADDBRANCH(t, footprintCorrection);
+    ADDBRANCH(t, photonPtSumOutsideSignalCone);
+    ADDBRANCH(t, chargedIsoPtSumdR03);
+    ADDBRANCH(t, neutralIsoPtSumdR03);
+    ADDBRANCH(t, neutralIsoPtSumWeightdR03);
+    ADDBRANCH(t, footprintCorrectiondR03);
+    ADDBRANCH(t, photonPtSumOutsideSignalConedR03);
 }
 
 
@@ -187,6 +212,18 @@ bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet,
 		recTauLeadPFChargedHadrCand_M=recTau->leadChargedHadrCand()->mass();
 	}
 
+
+    chargedIsoPtSum=recTau->tauID("chargedIsoPtSum");
+    neutralIsoPtSum=recTau->tauID("neutralIsoPtSum");
+    puCorrPtSum=recTau->tauID("puCorrPtSum");
+    neutralIsoPtSumWeight=recTau->tauID("neutralIsoPtSumWeight");
+    footprintCorrection=recTau->tauID("footprintCorrection");
+    photonPtSumOutsideSignalCone=recTau->tauID("photonPtSumOutsideSignalCone");
+    chargedIsoPtSumdR03=recTau->tauID("chargedIsoPtSumdR03");
+    neutralIsoPtSumdR03=recTau->tauID("neutralIsoPtSumdR03");
+    neutralIsoPtSumWeightdR03=recTau->tauID("neutralIsoPtSumWeightdR03");
+    footprintCorrectiondR03=recTau->tauID("footprintCorrectiondR03");
+    photonPtSumOutsideSignalConedR03=recTau->tauID("photonPtSumOutsideSignalConedR03");
 
 	return true;
 }

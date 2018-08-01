@@ -45,6 +45,7 @@
 
 #include "../../DeepTauID/interface/ntuple_content.h"
 #include "../../DeepTauID/interface/ntuple_genInfo.h"
+#include "../../DeepTauID/interface/ntuple_global.h"
 #include "../../DeepTauID/interface/ntuple_JetInfo.h"
 #include "../../DeepTauID/interface/ntuple_pfCands.h"
 #include "../../DeepTauID/interface/ntuple_recTau.h"
@@ -122,8 +123,8 @@ DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
 	jet_maxeta_=3;
 
 
-	// prunedGenParticles
-
+	ntuple_global * globals = new ntuple_global();
+	addModule(globals);
 
     ntuple_genInfo* genInfo=new ntuple_genInfo();
     // optional configuration of the module

@@ -141,7 +141,7 @@ std::vector<TChain* > mergeDescriptor::createChains(
             TString xrootdedpath=f;
             if(usexrootd)
                 xrootdedpath=prependXRootD(xrootdedpath);
-            chains.at(i)->Add(xrootdedpath+"/deeptau/tree");
+            chains.at(i)->Add(xrootdedpath+"/deepntuplizer/tree");
         }
         for(auto& bi:branchinfos){
             bi->setIsRead(true);

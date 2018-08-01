@@ -13,7 +13,7 @@
 class ntuple_global: public ntuple_content{
 public:
 
-	ntuple_global():ntuple_content(){clear();}
+	ntuple_global();
 
     void getInput(const edm::ParameterSet& iConfig){};
     void initBranches(TTree* );

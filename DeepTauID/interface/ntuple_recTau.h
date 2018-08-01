@@ -122,6 +122,17 @@ private:
 
     //don't consider pi0 given that it is easy to reconstruct from gammas in the DNN
 
+    float chargedIsoPtSum;
+    float neutralIsoPtSum;
+    float puCorrPtSum;
+    float neutralIsoPtSumWeight;
+    float footprintCorrection;
+    float photonPtSumOutsideSignalCone;
+    float chargedIsoPtSumdR03;
+    float neutralIsoPtSumdR03;
+    float neutralIsoPtSumWeightdR03;
+    float footprintCorrectiondR03;
+    float photonPtSumOutsideSignalConedR03;
 
 
 
