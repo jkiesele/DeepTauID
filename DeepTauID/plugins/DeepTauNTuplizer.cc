@@ -233,6 +233,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     iEvent.getByToken(vtxToken_, vertices);
     if (vertices->empty()) return;
 
+
     edm::Handle<double> rhoInfo;
     iEvent.getByToken(rhoToken_,rhoInfo);
 

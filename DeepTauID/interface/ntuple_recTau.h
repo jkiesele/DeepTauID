@@ -28,6 +28,8 @@ public:
 
     void clear();
 
+
+
 private:
 
     float pt_weighted_dx(const pat::Tau& tau, int mode = 0, int var = 0, int decaymode = -1)const;
@@ -41,7 +43,8 @@ private:
 
     float calculate_demetraIsolation(const pat::Tau& tau)const;
 
-    int isRecTau;
+
+    float isRecTau;
     int recTauDecayMode_i;
     float recTauDecayMode;
     float recTau_pt;

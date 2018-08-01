@@ -230,7 +230,7 @@ bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet,
     footprintCorrectiondR03=recTau->tauID("footprintCorrectiondR03");
     photonPtSumOutsideSignalConedR03=recTau->tauID("photonPtSumOutsideSignalConedR03");
 
-
+    demetraIsolation=calculate_demetraIsolation(*recTau);
 
 
 	return true;
@@ -363,14 +363,16 @@ float ntuple_recTau::calculate_demetraIsolation(const pat::Tau& tau)const{
 		pat::PackedCandidate const* cand = dynamic_cast<pat::PackedCandidate const*>(IsoCand.get());
 		if (! cand->charge() )continue;
 		//WATCH OUT WHICH VERTICES THESE ARE
+		if(!vertices())continue;
 		const auto& tau_vertex = (*vertices())[tau_vertex_idxpf];
+
 		if ((cand->pt()<=0.5) || (cand->dxy(tau_vertex.position())>=0.1))continue;
 		if (cand->hasTrackDetails()){
 			const auto &tt = cand->pseudoTrack();
 			if (tt.normalizedChi2()>=100. || cand->numberOfHits()<3)continue;
 		}
 
-		if (reco::deltaR2(&tau,cand)<0.5*0.5
+		if (reco::deltaR2(tau,*cand)<0.5*0.5
 				&& fabs(cand->dz(tau_vertex.position()))<0.15){
 
 			isoDR05pt05dz015+=cand->pt();
@@ -381,13 +383,13 @@ float ntuple_recTau::calculate_demetraIsolation(const pat::Tau& tau)const{
 	for(const auto&  IsoCand: tau.isolationGammaCands()){
 		pat::PackedCandidate const* cand = dynamic_cast<pat::PackedCandidate const*>(IsoCand.get());
 		if ( cand->pt() < 0.5 ) continue;
-		if (reco::deltaR2(&tau,cand)<0.3*0.3
+		if (reco::deltaR2(tau,*cand)<0.3*0.3
 				&& cand->pt()>1.){
 			gamma_DR03sum+=cand->pt();
 		}
 	}
 
-	return isoDR05pt05dz015 + 0.2 * std::max(0., gamma_DR03sum - 5.);
+	return (isoDR05pt05dz015 + 0.2 * std::max(0., gamma_DR03sum - 5.))/tau.pt();
 
 }
 
