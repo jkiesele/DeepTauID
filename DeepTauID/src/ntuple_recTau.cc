@@ -357,7 +357,7 @@ float ntuple_recTau::calculate_demetraIsolation(const pat::Tau& tau)const{
 
 	float isoDR05pt05dz015=0;
 	float isoDR05pt1dz015=0;
-	float gamma_DR03sum;
+	float gamma_DR03sum=0;
 
 	for(const auto& IsoCand: tau.isolationChargedHadrCands()){
 		pat::PackedCandidate const* cand = dynamic_cast<pat::PackedCandidate const*>(IsoCand.get());
