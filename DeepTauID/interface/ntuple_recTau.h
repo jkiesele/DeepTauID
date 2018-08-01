@@ -39,6 +39,7 @@ private:
     unsigned int n_photons_total(const pat::Tau& tau)const;
     bool dynamic_isInside(float photon_pt, float deta, float dphi)const;
 
+    float calculate_demetraIsolation(const pat::Tau& tau)const;
 
     int isRecTau;
     int recTauDecayMode_i;
@@ -134,6 +135,8 @@ private:
     float footprintCorrectiondR03;
     float photonPtSumOutsideSignalConedR03;
 
+
+    float demetraIsolation;
 
 
 };

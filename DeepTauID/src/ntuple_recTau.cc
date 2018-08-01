@@ -81,6 +81,9 @@ void ntuple_recTau::clear(){
     footprintCorrectiondR03=0;
     photonPtSumOutsideSignalConedR03=0;
 
+
+    demetraIsolation=0;
+
 }
 
 void ntuple_recTau::initBranches(TTree* t){
@@ -146,6 +149,8 @@ void ntuple_recTau::initBranches(TTree* t){
     ADDBRANCH(t, neutralIsoPtSumWeightdR03);
     ADDBRANCH(t, footprintCorrectiondR03);
     ADDBRANCH(t, photonPtSumOutsideSignalConedR03);
+
+    ADDBRANCH(t, demetraIsolation);
 }
 
 
@@ -224,6 +229,9 @@ bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet,
     neutralIsoPtSumWeightdR03=recTau->tauID("neutralIsoPtSumWeightdR03");
     footprintCorrectiondR03=recTau->tauID("footprintCorrectiondR03");
     photonPtSumOutsideSignalConedR03=recTau->tauID("photonPtSumOutsideSignalConedR03");
+
+
+
 
 	return true;
 }
@@ -327,18 +335,63 @@ unsigned int ntuple_recTau::n_photons_total(const pat::Tau& tau)const {
 
 bool ntuple_recTau::dynamic_isInside(float photon_pt, float deta, float dphi)const{
 
-		if(photon_pt==0){return false;}
+	if(photon_pt==0){return false;}
 
-		if(
+	if(
 			(dphi < TMath::Min(0.3, TMath::Max(0.05, 0.352476*TMath::Power(photon_pt, -0.707716)))) && \
 			(deta < TMath::Min(0.15, TMath::Max(0.05, 0.197077*TMath::Power(photon_pt, -0.658701))))
-		){
-			return true;
+	){
+		return true;
+	}
+
+	return false;
+
+}
+
+
+
+float ntuple_recTau::calculate_demetraIsolation(const pat::Tau& tau)const{
+	unsigned int tau_vertex_idxpf=-1;
+	pat::PackedCandidate const* packedLeadTauCand = dynamic_cast<pat::PackedCandidate const*>(tau.leadChargedHadrCand().get());
+	tau_vertex_idxpf = packedLeadTauCand->vertexRef().key();
+
+	float isoDR05pt05dz015=0;
+	float isoDR05pt1dz015=0;
+	float gamma_DR03sum;
+
+	for(const auto& IsoCand: tau.isolationChargedHadrCands()){
+		pat::PackedCandidate const* cand = dynamic_cast<pat::PackedCandidate const*>(IsoCand.get());
+		if (! cand->charge() )continue;
+		//WATCH OUT WHICH VERTICES THESE ARE
+		const auto& tau_vertex = (*vertices())[tau_vertex_idxpf];
+		if ((cand->pt()<=0.5) || (cand->dxy(tau_vertex.position())>=0.1))continue;
+		if (cand->hasTrackDetails()){
+			const auto &tt = cand->pseudoTrack();
+			if (tt.normalizedChi2()>=100. || cand->numberOfHits()<3)continue;
 		}
 
-		return false;
+		if (reco::deltaR2(&tau,cand)<0.5*0.5
+				&& fabs(cand->dz(tau_vertex.position()))<0.15){
 
+			isoDR05pt05dz015+=cand->pt();
+			if(cand->pt()>1)
+				isoDR05pt1dz015+=cand->pt();
+		}
 	}
+	for(const auto&  IsoCand: tau.isolationGammaCands()){
+		pat::PackedCandidate const* cand = dynamic_cast<pat::PackedCandidate const*>(IsoCand.get());
+		if ( cand->pt() < 0.5 ) continue;
+		if (reco::deltaR2(&tau,cand)<0.3*0.3
+				&& cand->pt()>1.){
+			gamma_DR03sum+=cand->pt();
+		}
+	}
+
+	return isoDR05pt05dz015 + 0.2 * std::max(0., gamma_DR03sum - 5.);
+
+}
+
+
 
 
 
