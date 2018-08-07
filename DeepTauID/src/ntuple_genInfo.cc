@@ -16,13 +16,17 @@ void ntuple_genInfo::initBranches(TTree* t){
 	ADDBRANCH(t, genTau_M);
 	ADDBRANCH(t, genTauDeltaR);
 
-	/*
+
 	ADDBRANCH(t, genVisTau_pt);
 	ADDBRANCH(t, genVisTau_eta);
 	ADDBRANCH(t, genVisTau_phi);
 	ADDBRANCH(t, genVisTau_M);
 	ADDBRANCH(t, genVisTauDeltaR);
-*/
+
+	ADDBRANCH(t, genVisTauOrJet_pt);
+	ADDBRANCH(t, genVisTauOrJet_eta);
+	ADDBRANCH(t, genVisTauOrJet_phi);
+	ADDBRANCH(t, genVisTauOrJet_M);
 
 	ADDBRANCH(t, genTauDecayMode);
 	ADDBRANCH(t, genTauMatch);
@@ -33,6 +37,9 @@ void ntuple_genInfo::initBranches(TTree* t){
 
 	ADDBRANCH(t,  isElectron);
 	ADDBRANCH(t,  isMuon);
+
+	ADDBRANCH(t, isTauToElectron);
+	ADDBRANCH(t, isTauToMuon);
 
 }
 
@@ -51,8 +58,10 @@ bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 		isNoTau=!istau;
 
 
-		isElectron = (dec == genDecayHelper::electron || abs(genTau->pdgId()) == 11);
-		isMuon = (dec == genDecayHelper::muon || abs(genTau->pdgId()) == 13);
+		isElectron = abs(genTau->pdgId()) == 11;
+		isTauToElectron = dec == genDecayHelper::electron ;
+		isMuon = abs(genTau->pdgId()) == 13;
+		isTauToMuon = dec == genDecayHelper::muon;
 
 
 
@@ -71,11 +80,34 @@ bool ntuple_genInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 		genTauMatch=isTau;
 		genTauDecayMode=dec_helper_.getGenTauDecayMode(genTau);
 
+		reco::Candidate::LorentzVector visP4 = dec_helper_.getVisMomentum(genTau);
+
+		genVisTau_pt=visP4.pt();
+		genVisTau_eta=visP4.eta();
+		genVisTau_phi=visP4.phi();
+		genVisTau_M=visP4.M();
+		genVisTauDeltaR=reco::deltaR(visP4,genTau->p4());
+
+
+	    genVisTauOrJet_pt=visP4.pt();
+	    genVisTauOrJet_eta=visP4.eta();
+	    genVisTauOrJet_phi=visP4.phi();
+	    genVisTauOrJet_M=visP4.M();
+
 	}
 	else{
 		clear();
 		isTau=0;
 		isNoTau=1;
+
+		if(recJet && recJet->genJet()){
+
+		    genVisTauOrJet_pt=recJet->genJet()->pt();
+		    genVisTauOrJet_eta=recJet->genJet()->eta();
+		    genVisTauOrJet_phi=recJet->genJet()->phi();
+		    genVisTauOrJet_M=recJet->genJet()->mass();
+
+		}
 	}
 	return true;
 }
@@ -101,11 +133,19 @@ void ntuple_genInfo::clear(){
 	genVisTau_M=0;
 	genVisTauDeltaR=0;
 
-	genTauDecayMode=0;
+	genVisTauOrJet_pt=0;
+	genVisTauOrJet_eta=0;
+	genVisTauOrJet_phi=0;
+	genVisTauOrJet_M=0;
+
+	genTauDecayMode=-1;
 	genTauMatch=0;
 
 	isTau=0;
 	isNoTau=1;
 	isElectron=0;
 	isMuon=0;
+
+    isTauToElectron=0;
+    isTauToMuon=0;
 }

@@ -42,6 +42,15 @@ class genDecayHelper{
 
 	bool isPromptTau(const reco::GenParticle& )const;
 	bool isPromptLepton(const reco::GenParticle& )const;
+
+	bool isNeutrino(const reco::GenParticle& )const;
+
+	reco::Candidate::LorentzVector getVisMomentum(const reco::GenParticle* tau)const;
+
+
+private:
+	reco::Candidate::LorentzVector getVisMomentum(const std::vector<const reco::GenParticle*>& daughters, int status)const;
+	void findDaughters(const reco::GenParticle* mother, std::vector<const reco::GenParticle*>& daughters, int status=1)const;
 };
 
 template<class T>

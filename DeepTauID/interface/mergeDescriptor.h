@@ -25,6 +25,7 @@
 #include "../../../DeepTau/DeepTauID/interface/ntuple_genInfo.h"
 #include "../../../DeepTau/DeepTauID/interface/ntuple_recTau.h"
 #include "../../../DeepTau/DeepTauID/interface/ntuple_pfCands.h"
+#include "../../../DeepTau/DeepTauID/interface/ntuple_global.h"
 
 template <class T, class U>
 inline void serializedWrite(const T& in, U& saveFile){

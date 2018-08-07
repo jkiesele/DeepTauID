@@ -6,3 +6,4 @@
 <bin name="createMergeList" file="createMergeList.cc" />
 <bin name="merge" file="merge.cc" />
 <bin name="checkFileList" file="checkFileList.cc" />
+<bin name="removeNonTauFraction" file="removeNonTauFraction.cc" />

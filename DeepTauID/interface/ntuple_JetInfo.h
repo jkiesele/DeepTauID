@@ -41,6 +41,12 @@ private:
     float recJet_mass;
     float recJetLooseId;
 
+
+    float genJet_pt;
+    float genJet_eta;
+    float genJet_phi;
+    float genJet_mass;
+
     int hasGenMatch;
 
 

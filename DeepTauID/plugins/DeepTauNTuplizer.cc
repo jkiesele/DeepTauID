@@ -51,6 +51,7 @@
 #include "../../DeepTauID/interface/ntuple_recTau.h"
 #include "../../DeepTauID/interface/genDecayHelper.h"
 
+#include "TRandom3.h"
 
 
 #if defined( __GXX_EXPERIMENTAL_CXX0X__)
@@ -86,10 +87,14 @@ private:
     edm::EDGetTokenT<edm::View<reco::GenParticle> >      genToken_;
     edm::EDGetTokenT<double> rhoToken_;
 
+    TRandom3 rand;
+
     double gentau_minpt_;
     double gentau_maxeta_;
     double jet_minpt_;
 	double jet_maxeta_;
+	double noTauNoGen_reduction_;
+	double promptLepton_reduction_;
 
     edm::Service<TFileService> fs;
     TTree *tree_;
@@ -121,7 +126,8 @@ DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
     gentau_maxeta_=3;
     jet_minpt_=20;
 	jet_maxeta_=3;
-
+	noTauNoGen_reduction_=0.05; //reduce non-tau no gen (pileup) contribution to 5%
+	promptLepton_reduction_=0.01; //reduce to 1% muon/electron contamination for tests
 
 	ntuple_global * globals = new ntuple_global();
 	addModule(globals);
@@ -253,8 +259,8 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     		taus.push_back(&h_taus->at(i));
     }
 
-
-
+    if(gens.size())
+    	rand.SetSeed((int) (1000*gens.at(0)->pt()));
 
 
     for(auto& m:modules_){
@@ -285,6 +291,8 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     	if(dec_helper.isPromptTau(*p) &&( p->pt() < gentau_minpt_ || fabs(p->eta())> gentau_maxeta_)) continue;
 
+    	if(! dec_helper.isPromptTau(*p) && rand.Uniform(0.,1.) > promptLepton_reduction_ ) continue;
+
     	bool writetau=true;
     	for(auto& m:modules_){
     		if(! m->fillBranches(rectau,jet,p)){ //MAKE TAU GEN CUTS HERE
@@ -300,8 +308,14 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     for(auto& m:modules_){
     	m->clear();
     }
+
+
     for(auto jet: jets){
     	if(std::find(tauJets.begin(),tauJets.end(),jet) != tauJets.end()) continue;
+
+
+    	//remove some PU jets
+    	if(! jet->genJet() && rand.Uniform(0.,1.)>noTauNoGen_reduction_)continue;
 
     	//these have no gen Tau // maybe a fake reco tau
     	reco::GenParticle * nolepton=0;

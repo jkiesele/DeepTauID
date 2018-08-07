@@ -33,7 +33,7 @@ private:
 
     genDecayHelper dec_helper_;
 
-
+public:
     //branches
     float genEvtWeight;
     float evtWeight;
@@ -50,6 +50,11 @@ private:
     float genVisTau_M;
     float genVisTauDeltaR;
 
+    float genVisTauOrJet_pt;
+    float genVisTauOrJet_eta;
+    float genVisTauOrJet_phi;
+    float genVisTauOrJet_M;
+
     int genTauDecayMode;
     float genTauMatch;
 
@@ -58,6 +63,9 @@ private:
 
     int isElectron;
     int isMuon;
+
+    int isTauToElectron;
+    int isTauToMuon;
 
 
 };

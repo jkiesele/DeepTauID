@@ -10,6 +10,7 @@
 
 #include "TFile.h"
 #include <fstream>
+#include "TTree.h"
 #include "TString.h"
 #include <iostream>
 
@@ -38,13 +39,15 @@ std::vector<TString> readSampleFile(const TString& file, const TString& addpath)
 
 int main(int argc, char *argv[]){
 
-    if(argc<2){
-        std::cout << "USAGE: checkFileList <root file list>\n will overwrite the existing\
+    if(argc<3){
+        std::cout << "USAGE: checkFileList <root file list> <treename> \n will overwrite the existing\
  list but copy it to a backup before. The output file list will only contain good files" <<std::endl;
+        exit(-1);
     }
 
 
     const TString file=argv[1];
+    const TString treename=argv[2];
 
     TString inpath=dirname(argv[1]);
 
@@ -66,14 +69,25 @@ int main(int argc, char *argv[]){
         //maybe mor elater
         bool fileisgood = f && !f->IsZombie();
 
+        TTree * t = (TTree * )f->Get(treename);
+
+        bool treeisgood = t && !t->IsZombie();
+        fileisgood &= treeisgood;
+
         f->Close();
         delete f;
 
         if(fileisgood){
             outlist << sample_filenames.at(i) << '\n';
+            std::cout << sample_filenames.at(i) << " ok" << std::endl;
         }
         else{
-            std::cout << sample_filenames.at(i) << " broken, removing " <<std::endl;
+            std::cout << sample_filenames.at(i) << " broken, removing ";
+        	if(!treeisgood)
+        		std::cout << " (bad tree) " << treename << std::endl;
+        	else
+        		std::cout << std::endl;
+
         }
     }
 

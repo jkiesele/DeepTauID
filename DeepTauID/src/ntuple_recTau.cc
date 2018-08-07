@@ -18,8 +18,8 @@ ntuple_recTau::ntuple_recTau():ntuple_content()
 void ntuple_recTau::clear(){
 
 	isRecTau=0;
-	recTauDecayMode_i=0;
-	recTauDecayMode=0;
+	recTauDecayMode_i=-1;
+	recTauDecayMode=-1;
 	recTau_pt=0;
 	recTau_eta=0;
 	recTau_phi=0;
@@ -69,20 +69,20 @@ void ntuple_recTau::clear(){
 	recTauLeadPFChargedHadrCand_M=0;
 
 
-    chargedIsoPtSum=0;
-    neutralIsoPtSum=0;
-    puCorrPtSum=0;
-    neutralIsoPtSumWeight=0;
-    footprintCorrection=0;
-    photonPtSumOutsideSignalCone=0;
-    chargedIsoPtSumdR03=0;
-    neutralIsoPtSumdR03=0;
-    neutralIsoPtSumWeightdR03=0;
-    footprintCorrectiondR03=0;
-    photonPtSumOutsideSignalConedR03=0;
+    chargedIsoPtSum=-0.1;
+    neutralIsoPtSum=-0.1;
+    puCorrPtSum=-0.1;
+    neutralIsoPtSumWeight=-0.1;
+    footprintCorrection=-0.1;
+    photonPtSumOutsideSignalCone=-0.1;
+    chargedIsoPtSumdR03=-0.1;
+    neutralIsoPtSumdR03=-0.1;
+    neutralIsoPtSumWeightdR03=-0.1;
+    footprintCorrectiondR03=-0.1;
+    photonPtSumOutsideSignalConedR03=-0.1;
 
 
-    demetraIsolation=0;
+    demetraIsolation=20;
 
 }
 
