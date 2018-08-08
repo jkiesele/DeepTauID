@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 deepntuplizer = cms.EDAnalyzer('DeepTauNTuplizer',
-                                jets       = cms.InputTag("slimmedJets"),
+                                jets       = cms.InputTag("slimmedJetsPuppi"),
                                 taus       = cms.InputTag("slimmedTaus"),
                                 genparticles = cms.InputTag("prunedGenParticles"),
                                 vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),

@@ -287,9 +287,13 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     	const pat::Tau * rectau = findMatchingRecTau(p,taus);
 
-    	if(jet && (jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_)) jet=0;
+    	//if(jet && (jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_)) jet=0;
 
-    	if(dec_helper.isPromptTau(*p) &&( p->pt() < gentau_minpt_ || fabs(p->eta())> gentau_maxeta_)) continue;
+
+    	if(dec_helper.isPromptTau(*p)){
+    		reco::Candidate::LorentzVector vismomentum=dec_helper.getVisMomentum(p);
+    		if(( vismomentum.pt() < gentau_minpt_ || fabs(vismomentum.eta())> gentau_maxeta_)) continue;
+    	}
 
     	if(! dec_helper.isPromptTau(*p) && rand.Uniform(0.,1.) > promptLepton_reduction_ ) continue;
 
@@ -321,7 +325,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     	reco::GenParticle * nolepton=0;
     	const pat::Tau * rectau = findMatchingRecTau(jet,taus);
 
-    	if(jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_) jet=0;
+    	if(jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_) continue;
 
     	// the implicit cuts that CAN be implemented in fillBranches are NOT used here
     	bool writejet=true;

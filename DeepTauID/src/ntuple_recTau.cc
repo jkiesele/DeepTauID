@@ -81,6 +81,7 @@ void ntuple_recTau::clear(){
     footprintCorrectiondR03=-0.1;
     photonPtSumOutsideSignalConedR03=-0.1;
 
+    tauIDdecayModeFinding=-0.1;
 
     demetraIsolation=20;
 
@@ -150,6 +151,8 @@ void ntuple_recTau::initBranches(TTree* t){
     ADDBRANCH(t, footprintCorrectiondR03);
     ADDBRANCH(t, photonPtSumOutsideSignalConedR03);
 
+    ADDBRANCH(t, tauIDdecayModeFinding);
+
     ADDBRANCH(t, demetraIsolation);
 }
 
@@ -169,6 +172,7 @@ bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet,
 	recTau_eta=recTau->eta();
 	recTau_phi=recTau->phi();
 	recTau_M=recTau->mass();
+
 
 
 
@@ -232,6 +236,7 @@ bool ntuple_recTau::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet,
 
     demetraIsolation=calculate_demetraIsolation(*recTau);
 
+    tauIDdecayModeFinding=recTau->tauID("decayModeFinding");
 
 	return true;
 }

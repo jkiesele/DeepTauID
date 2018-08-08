@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
   //  branchinfos.push_back(new ntuple_global());
 
     TFile * f = new TFile(infile,"READ");
-    TTree * intree=(TTree*) f->Get("tree");
+    TTree * intree=(TTree*) f->Get("deepntuplizer/tree");
 
     for(auto& bi:branchinfos){
         bi->setIsRead(true);
@@ -61,6 +61,7 @@ int main(int argc, char *argv[]){
     TRandom3 rand;
 
     TFile * fout= new TFile(outfile,"RECREATE");
+    fout -> mkdir("deepntuplizer")->cd();
     TTree * outtree = intree->CloneTree(0);
 
     for(int i=0;i<intree->GetEntries();i++){

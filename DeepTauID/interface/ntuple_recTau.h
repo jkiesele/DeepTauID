@@ -138,6 +138,7 @@ private:
     float footprintCorrectiondR03;
     float photonPtSumOutsideSignalConedR03;
 
+    float tauIDdecayModeFinding; //tauID("decayModeFinding");
 
     float demetraIsolation;
 
