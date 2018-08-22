@@ -32,6 +32,10 @@ void ntuple_JetInfo::initBranches(TTree* t){
     ADDBRANCH(t,genJet_mass);
 
     ADDBRANCH(t,hasGenMatch);
+
+    ADDBRANCH(t,hasElecMatch05);
+    ADDBRANCH(t,hasMuonMatch05);
+    ADDBRANCH(t,hasTauMatch05);
 }
 void ntuple_JetInfo::clear(){
 
@@ -45,6 +49,31 @@ void ntuple_JetInfo::clear(){
     genJet_mass=0;
     recJetLooseId=0;
     hasGenMatch=0;
+
+
+    hasElecMatch05=0;
+    hasMuonMatch05=0;
+    hasTauMatch05=0;
+}
+
+bool ntuple_JetInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau,
+		const std::vector<const reco::GenParticle*> * gen){
+	if(!recJet){
+		clear();
+		return true;
+	}
+	if(gen){
+		for(auto genParticle: *gen){
+			if(!(genParticle->isLastCopy() && genParticle->statusFlags().fromHardProcess()))continue;
+			if(reco::deltaR2(genParticle->p4(),recJet->p4()) > 0.5*0.5) continue;
+
+			if(TMath::Abs(genParticle->pdgId()) == 11) hasElecMatch05++;
+			if(TMath::Abs(genParticle->pdgId()) == 13) hasMuonMatch05++;
+			if(TMath::Abs(genParticle->pdgId()) == 15) hasTauMatch05++;
+
+		}
+	}
+	return fillBranches(recTau,recJet,genTau);
 }
 bool ntuple_JetInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau){
 	if(!recJet){

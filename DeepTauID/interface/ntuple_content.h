@@ -44,6 +44,9 @@ public:
     //use either of these functions
 
     virtual bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau)=0;
+    virtual bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau, const std::vector<const reco::GenParticle*> * gen){
+    	return fillBranches(recTau, recJet, genTau);
+    }
 
     virtual void clear(){};
 

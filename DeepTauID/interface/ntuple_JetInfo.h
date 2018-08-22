@@ -9,6 +9,7 @@
 #define DEEPTAU_DEEPTAUID_INTERFACE_NTUPLE_JETINFO_H_
 
 #include "ntuple_content.h"
+#include "genDecayHelper.h"
 #include "PhysicsTools/SelectorUtils/interface/PFJetIDSelectionFunctor.h"
 /**
  *
@@ -28,12 +29,14 @@ public:
     //use either of these functions
 
     bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau);
-
+    bool fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau,
+    		const std::vector<const reco::GenParticle*> * gen);
 
     void clear();
 private:
 
     PFJetIDSelectionFunctor* loosePFJetIdAlgo_;
+    genDecayHelper dechelper_;
 
     float recJet_pt;
     float recJet_eta;
@@ -46,6 +49,10 @@ private:
     float genJet_eta;
     float genJet_phi;
     float genJet_mass;
+
+    int hasElecMatch05;   //just for comparison with Usamas code
+    int hasMuonMatch05;   //just for comparison with Usamas code
+    int hasTauMatch05;    //just for comparison with Usamas code
 
     int hasGenMatch;
 

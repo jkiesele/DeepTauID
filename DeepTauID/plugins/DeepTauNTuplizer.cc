@@ -80,6 +80,7 @@ private:
     const pat::Tau* findMatchingRecTau(const reco::Jet* jet,         const std::vector<const pat::Tau *> & taus)const;
 
 
+
     // ----------member data ---------------------------
     edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
     edm::EDGetTokenT<edm::View<pat::Jet> >      jetToken_;
@@ -99,6 +100,7 @@ private:
     edm::Service<TFileService> fs;
     TTree *tree_;
 
+    genDecayHelper dec_helper;
 
     ntuple_content * addModule(ntuple_content *m){
         modules_.push_back(m);
@@ -183,9 +185,13 @@ DeepTauNTuplizer::~DeepTauNTuplizer()
 const pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, const std::vector<const pat::Jet *> & jets)const{
 	const pat::Jet* ret=0;
 	double mindr=0.3;
+	reco::Candidate::LorentzVector vismomentum=tau->p4();
+	if(dec_helper.isPromptTau(*tau)){
+		vismomentum=dec_helper.getVisMomentum(tau);
+	}
 	for(size_t t=0;t<jets.size();t++){
 		auto jet=jets.at(t);
-		double deltar=deltaR(jet->p4(),tau->p4());
+		double deltar=deltaR(jet->p4(),vismomentum);
 		if(deltar<mindr){
 			mindr=deltar;
 			ret=jet;
@@ -275,12 +281,16 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     // loop over gen taus and associated jets
     // save all associated jets
     std::vector<const pat::Jet *> tauJets;
+    std::vector<const reco::GenParticle *> leptons; //for overlap check
 
-    genDecayHelper dec_helper;
     for(auto p: gens){
 
+    	if(dec_helper.isLooseGenLepton(*p)){
+    		leptons.push_back(p);
+    	}
     	// this also allows electrons and muons and tau decays to electrons and muons - later flagged as !isTau
     	if(!dec_helper.isPromptLepton(*p))continue;
+
 
     	const pat::Jet * jet = findMatchingJet(p,jets);
 		tauJets.push_back(jet);
@@ -299,7 +309,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     	bool writetau=true;
     	for(auto& m:modules_){
-    		if(! m->fillBranches(rectau,jet,p)){ //MAKE TAU GEN CUTS HERE
+    		if(! m->fillBranches(rectau,jet,p,&gens)){ //MAKE TAU GEN CUTS HERE
     			writetau=false;
     		}
     	}
@@ -327,10 +337,21 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     	if(jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_) continue;
 
+    	// remove any jet that could overlap with a tau or lepton (dR=0.5)
+    	// avoiding ambiguous cases
+    	bool usejet=true;
+    	for(auto lep: leptons){
+    		if(reco::deltaR2(lep->p4(),jet->p4()) < 0.5*0.5){
+    			usejet=false;
+    			break;
+    		}
+    	}
+    	if(!usejet) continue;
+
     	// the implicit cuts that CAN be implemented in fillBranches are NOT used here
     	bool writejet=true;
     	for(auto& m:modules_){
-    		if(! m->fillBranches(rectau,jet,nolepton)){
+    		if(! m->fillBranches(rectau,jet,nolepton,&gens)){
     			writejet=false;
     		}
     	}

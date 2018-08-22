@@ -42,7 +42,7 @@ class genDecayHelper{
 
 	bool isPromptTau(const reco::GenParticle& )const;
 	bool isPromptLepton(const reco::GenParticle& )const;
-
+	bool isLooseGenLepton(const reco::GenParticle& )const;
 	bool isNeutrino(const reco::GenParticle& )const;
 
 	reco::Candidate::LorentzVector getVisMomentum(const reco::GenParticle* tau)const;

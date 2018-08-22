@@ -25,6 +25,15 @@ bool genDecayHelper::isPromptLepton(const reco::GenParticle& genParticle)const{
 	return false;
 }
 
+bool genDecayHelper::isLooseGenLepton(const reco::GenParticle& genParticle)const{
+	if((genParticle.isLastCopy() && genParticle.statusFlags().fromHardProcess())){
+		if(  abs(genParticle.pdgId()) == 15 || abs(genParticle.pdgId()) == 13 || abs(genParticle.pdgId()) == 11)return true;
+	}
+	else if(isPromptLepton(genParticle)) return true;
+	return false;
+}
+
+
 bool genDecayHelper::isNeutrino(const reco::GenParticle & daughter)const{
 	return ( TMath::Abs(daughter.pdgId()) == 12 || TMath::Abs(daughter.pdgId()) == 14 || TMath::Abs(daughter.pdgId()) == 16 );
 }
