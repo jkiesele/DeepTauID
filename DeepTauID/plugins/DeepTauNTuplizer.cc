@@ -128,7 +128,7 @@ DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
     gentau_maxeta_=3;
     jet_minpt_=20;
 	jet_maxeta_=3;
-	noTauNoGen_reduction_=0.05; //reduce non-tau no gen (pileup) contribution to 5%
+	noTauNoGen_reduction_=0.01; //reduce non-tau no gen (pileup) contribution to 1%
 	promptLepton_reduction_=0.01; //reduce to 1% muon/electron contamination for tests
 
 	ntuple_global * globals = new ntuple_global();
