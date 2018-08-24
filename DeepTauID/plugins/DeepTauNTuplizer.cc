@@ -75,7 +75,7 @@ private:
     virtual void endJob() override;
 
     //can return 0
-    const pat::Jet* findMatchingJet(const reco::GenParticle* tau,    const std::vector<const pat::Jet *> & jets)const;
+    const pat::Jet* findMatchingJet(const reco::GenParticle* tau,    const std::vector<const pat::Jet *> & jets, bool requireGen)const;
     const pat::Tau* findMatchingRecTau(const reco::GenParticle* tau, const std::vector<const pat::Tau *> & taus)const;
     const pat::Tau* findMatchingRecTau(const reco::Jet* jet,         const std::vector<const pat::Tau *> & taus)const;
 
@@ -96,6 +96,8 @@ private:
 	double jet_maxeta_;
 	double noTauNoGen_reduction_;
 	double promptLepton_reduction_;
+
+	bool onlyrectaus_;
 
     edm::Service<TFileService> fs;
     TTree *tree_;
@@ -128,8 +130,10 @@ DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
     gentau_maxeta_=3;
     jet_minpt_=20;
 	jet_maxeta_=3;
-	noTauNoGen_reduction_=0.01; //reduce non-tau no gen (pileup) contribution to 1%
-	promptLepton_reduction_=0.01; //reduce to 1% muon/electron contamination for tests
+	noTauNoGen_reduction_=0.0; //reduce non-tau no gen (pileup) contribution to 0%
+	promptLepton_reduction_=0.0; //reduce to 0% muon/electron contamination for tests
+
+	onlyrectaus_=iConfig.getParameter<bool>("onlyRecTaus");
 
 	ntuple_global * globals = new ntuple_global();
 	addModule(globals);
@@ -182,7 +186,7 @@ DeepTauNTuplizer::~DeepTauNTuplizer()
         delete m;
 }
 
-const pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, const std::vector<const pat::Jet *> & jets)const{
+const pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, const std::vector<const pat::Jet *> & jets, bool requireGen)const{
 	const pat::Jet* ret=0;
 	double mindr=0.3;
 	reco::Candidate::LorentzVector vismomentum=tau->p4();
@@ -191,6 +195,7 @@ const pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, 
 	}
 	for(size_t t=0;t<jets.size();t++){
 		auto jet=jets.at(t);
+		if(requireGen && !jet->genJet()) continue;
 		double deltar=deltaR(jet->p4(),vismomentum);
 		if(deltar<mindr){
 			mindr=deltar;
@@ -292,7 +297,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     	if(!dec_helper.isPromptLepton(*p))continue;
 
 
-    	const pat::Jet * jet = findMatchingJet(p,jets);
+    	const pat::Jet * jet = findMatchingJet(p,jets,true);
 		tauJets.push_back(jet);
 
     	const pat::Tau * rectau = findMatchingRecTau(p,taus);
@@ -308,6 +313,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     	if(! dec_helper.isPromptTau(*p) && rand.Uniform(0.,1.) > promptLepton_reduction_ ) continue;
 
     	bool writetau=true;
+    	if(onlyrectaus_ && ! rectau) writetau=false;
     	for(auto& m:modules_){
     		if(! m->fillBranches(rectau,jet,p,&gens)){ //MAKE TAU GEN CUTS HERE
     			writetau=false;
@@ -350,6 +356,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     	// the implicit cuts that CAN be implemented in fillBranches are NOT used here
     	bool writejet=true;
+    	if(onlyrectaus_ && ! rectau) writejet=false;
     	for(auto& m:modules_){
     		if(! m->fillBranches(rectau,jet,nolepton,&gens)){
     			writejet=false;

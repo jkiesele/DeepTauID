@@ -5,15 +5,33 @@ from argparse import ArgumentParser
 import os
 import subprocess
 
+
+def check_root_ok(filename, treename="tree"):
+
+    retval=True
+    import ROOT
+    rfile = ROOT.TFile(filename,"READ")
+    if rfile.TestBit(ROOT.TFile.kRecovered) : retval = False
+    if rfile.IsZombie(): 
+        rfile.Close()
+        return False
+    tree = rfile.Get(treename)
+    if tree.IsZombie(): retval = False
+    rfile.Close()
+    return retval
+
+
 print("This script is still experimental and not fully completed")
 
 parser = ArgumentParser('merge samples')
 parser.add_argument('nsamples')
 parser.add_argument('outdir')
+parser.add_argument('--checkfiles', dest='checkfiles', action='store_true')
 parser.add_argument('--batchdir',type=str,default="")
 parser.add_argument('infiles', metavar='N', nargs='+',
                     help='sample list files')
 
+parser.set_defaults(checkfiles=False)
 args = parser.parse_args()
 
 if not os.path.isdir(args.outdir):
@@ -35,6 +53,13 @@ listsucc=[]
 for j in range(int(nJobs)):
     
     if os.path.exists(args.outdir+'/'+str(j)+'.succ'):
+        if args.checkfiles:
+            rfilename = args.outdir+'/ntuple_merged_'+str(j)+'.root'
+            print('checking '+rfilename+'...')
+            if not check_root_ok(rfilename):
+                listtoberun.append(j)
+                print(rfilename+' broken, repeat merging')
+                continue
         listsucc.append(j)
         continue
     
@@ -42,6 +67,8 @@ for j in range(int(nJobs)):
 
 print('successful: ',listsucc)
 print('remaining: ',int(nJobs)-len(listsucc))
+
+
 
 cwd = os.getcwd()
 cmssw_base = os.environ.get('CMSSW_BASE')
