@@ -212,6 +212,7 @@ void ntuple_pfCands::initBranches(TTree* t){
 	ADDBRANCH(t,Npfcan_deltaR);
 	ADDBRANCH(t,Npfcan_isGamma);
 	ADDBRANCH(t,Npfcan_HadFrac);
+	ADDBRANCH(t,Npfcan_pdgID);
 
 }
 
@@ -288,6 +289,7 @@ void ntuple_pfCands::clear(){
 	Npfcan_isGamma.clear();
 	Npfcan_HadFrac.clear();
 	Npfcan_drminsv.clear();
+	Npfcan_pdgID.clear();
 }
 
 bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau){
@@ -307,10 +309,8 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 	for (unsigned int i = 0; i <  jet.numberOfDaughters(); i++){
 		const pat::PackedCandidate* PackedCandidate_ = dynamic_cast<const pat::PackedCandidate*>(jet.daughter(i));
 		if(!PackedCandidate_)continue;
-		if(PackedCandidate_->pt()<0.75)continue;
 
 		if(PackedCandidate_->charge()!=0 ){
-			if(! PackedCandidate_->hasTrackDetails())continue;
 
 			Cpfcan_pt.push_back(PackedCandidate_->pt());
 			Cpfcan_eta.push_back(PackedCandidate_->eta());
@@ -321,16 +321,20 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Cpfcan_etarel.push_back(catchInfsAndBound(fabs(PackedCandidate_->eta()-jet.eta()),0,-2,0,-0.5));
 			Cpfcan_deltaR.push_back(catchInfsAndBound(reco::deltaR(*PackedCandidate_,jet),0,-0.6,0,-0.6));
 
-
-			Cpfcan_dxy.push_back(catchInfsAndBound_track(PackedCandidate_, fabs(PackedCandidate_->dxy()),0,-50,50));
-			Cpfcan_dxyerrinv.push_back(catchInfsAndBound_track(PackedCandidate_,1/PackedCandidate_->dxyError(),0,-1, 10000.));
-			Cpfcan_dxysig.push_back(catchInfsAndBound_track(PackedCandidate_,fabs(PackedCandidate_->dxy()/PackedCandidate_->dxyError()),0.,-2000,2000));
-			Cpfcan_dz.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->dz(),0,-100,100));
-
-
 			Cpfcan_VTX_ass.push_back(PackedCandidate_->pvAssociationQuality());
 
 			Cpfcan_fromPV.push_back(PackedCandidate_->fromPV());
+
+			Cpfcan_puppiw.push_back(PackedCandidate_->puppiWeight());
+
+			Cpfcan_isMu.push_back(abs(PackedCandidate_->pdgId())==13);
+			Cpfcan_isEl.push_back(abs(PackedCandidate_->pdgId())==11);
+			Cpfcan_pdgID.push_back(PackedCandidate_->pdgId());
+
+			Cpfcan_charge.push_back(PackedCandidate_->charge());
+
+			Cpfcan_lostInnerHits.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->lostInnerHits(),2,0,10));
+			Cpfcan_numberOfPixelHits.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->numberOfPixelHits(),-1,0,10));
 
 			Cpfcan_vertexChi2.push_back(PackedCandidate_->vertexChi2());
 			Cpfcan_vertexNdof.push_back(PackedCandidate_->vertexNdof());
@@ -342,38 +346,57 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Cpfcan_vertexRef_mass.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->vertexRef()->p4().M(),0,0,10));
 
 
-			Cpfcan_puppiw.push_back(PackedCandidate_->puppiWeight());
+			if(PackedCandidate_->hasTrackDetails()){// && PackedCandidate_->pt()<0.75){
+				Cpfcan_dxy.push_back(catchInfsAndBound_track(PackedCandidate_, fabs(PackedCandidate_->dxy()),0,-50,50));
+				Cpfcan_dxyerrinv.push_back(catchInfsAndBound_track(PackedCandidate_,1/PackedCandidate_->dxyError(),0,-1, 10000.));
+				Cpfcan_dxysig.push_back(catchInfsAndBound_track(PackedCandidate_,fabs(PackedCandidate_->dxy()/PackedCandidate_->dxyError()),0.,-2000,2000));
+				Cpfcan_dz.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->dz(),0,-100,100));
+
+				trackinfo.buildTrackInfo(PackedCandidate_,jetDir,jetRefTrackDir,vertices()->at(0));
+
+				Cpfcan_BtagPf_trackMomentum.push_back(catchInfsAndBound(trackinfo.getTrackMomentum(),0,0 ,1000));
+				Cpfcan_BtagPf_trackEta.push_back(catchInfsAndBound(trackinfo.getTrackEta()   ,  0,-5,5));
+				Cpfcan_BtagPf_trackEtaRel.push_back(     catchInfsAndBound(trackinfo.getTrackEtaRel(),  0,-5,15));
+				Cpfcan_BtagPf_trackPtRel.push_back(      catchInfsAndBound(trackinfo.getTrackPtRel(),   0,-1,4));
+				Cpfcan_BtagPf_trackPPar.push_back(       catchInfsAndBound(trackinfo.getTrackPPar(),    0,-1e5,1e5 ));
+				Cpfcan_BtagPf_trackDeltaR.push_back(     catchInfsAndBound(trackinfo.getTrackDeltaR(),  0,-5,5 ));
+				Cpfcan_BtagPf_trackPtRatio.push_back(    catchInfsAndBound(trackinfo.getTrackPtRatio(), 0,-1,10 ));
+				Cpfcan_BtagPf_trackPParRatio.push_back(  catchInfsAndBound(trackinfo.getTrackPParRatio(),0,-10,100));
+				Cpfcan_BtagPf_trackSip3dVal.push_back(   catchInfsAndBound(trackinfo.getTrackSip3dVal(), 0, -1,1e5 ));
+				Cpfcan_BtagPf_trackSip3dSig.push_back(   catchInfsAndBound(trackinfo.getTrackSip3dSig(), 0, -1,4e4 ));
+				Cpfcan_BtagPf_trackSip2dVal.push_back(   catchInfsAndBound(trackinfo.getTrackSip2dVal(), 0, -1,70 ));
+				Cpfcan_BtagPf_trackSip2dSig.push_back(   catchInfsAndBound(trackinfo.getTrackSip2dSig(), 0, -1,4e4 ));
+
+				Cpfcan_BtagPf_trackJetDistVal.push_back( catchInfsAndBound(trackinfo.getTrackJetDistVal(),0,-20,1 ));
+
+				Cpfcan_chi2.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->pseudoTrack().normalizedChi2(),300,-1,300));
+				Cpfcan_quality.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->pseudoTrack().qualityMask(),0,0,100));
+			}
+			else{
+
+				Cpfcan_dxy.push_back(0);
+				Cpfcan_dxyerrinv.push_back(0);
+				Cpfcan_dxysig.push_back(0);
+				Cpfcan_dz.push_back(0);
 
 
-			trackinfo.buildTrackInfo(PackedCandidate_,jetDir,jetRefTrackDir,vertices()->at(0));
+				Cpfcan_BtagPf_trackMomentum.push_back(  0);
+				Cpfcan_BtagPf_trackEta.push_back(       0);
+				Cpfcan_BtagPf_trackEtaRel.push_back(    0);
+				Cpfcan_BtagPf_trackPtRel.push_back(     0);
+				Cpfcan_BtagPf_trackPPar.push_back(      0);
+				Cpfcan_BtagPf_trackDeltaR.push_back(    0);
+				Cpfcan_BtagPf_trackPtRatio.push_back(   0);
+				Cpfcan_BtagPf_trackPParRatio.push_back( 0);
+				Cpfcan_BtagPf_trackSip3dVal.push_back(  0);
+				Cpfcan_BtagPf_trackSip3dSig.push_back(  0);
+				Cpfcan_BtagPf_trackSip2dVal.push_back(  0);
+				Cpfcan_BtagPf_trackSip2dSig.push_back(  0);
+				Cpfcan_BtagPf_trackJetDistVal.push_back(0);
 
-			Cpfcan_BtagPf_trackMomentum.push_back(catchInfsAndBound(trackinfo.getTrackMomentum(),0,0 ,1000));
-			Cpfcan_BtagPf_trackEta.push_back(catchInfsAndBound(trackinfo.getTrackEta()   ,  0,-5,5));
-			Cpfcan_BtagPf_trackEtaRel.push_back(     catchInfsAndBound(trackinfo.getTrackEtaRel(),  0,-5,15));
-			Cpfcan_BtagPf_trackPtRel.push_back(      catchInfsAndBound(trackinfo.getTrackPtRel(),   0,-1,4));
-			Cpfcan_BtagPf_trackPPar.push_back(       catchInfsAndBound(trackinfo.getTrackPPar(),    0,-1e5,1e5 ));
-			Cpfcan_BtagPf_trackDeltaR.push_back(     catchInfsAndBound(trackinfo.getTrackDeltaR(),  0,-5,5 ));
-			Cpfcan_BtagPf_trackPtRatio.push_back(    catchInfsAndBound(trackinfo.getTrackPtRatio(), 0,-1,10 ));
-			Cpfcan_BtagPf_trackPParRatio.push_back(  catchInfsAndBound(trackinfo.getTrackPParRatio(),0,-10,100));
-			Cpfcan_BtagPf_trackSip3dVal.push_back(   catchInfsAndBound(trackinfo.getTrackSip3dVal(), 0, -1,1e5 ));
-			Cpfcan_BtagPf_trackSip3dSig.push_back(   catchInfsAndBound(trackinfo.getTrackSip3dSig(), 0, -1,4e4 ));
-			Cpfcan_BtagPf_trackSip2dVal.push_back(   catchInfsAndBound(trackinfo.getTrackSip2dVal(), 0, -1,70 ));
-			Cpfcan_BtagPf_trackSip2dSig.push_back(   catchInfsAndBound(trackinfo.getTrackSip2dSig(), 0, -1,4e4 ));
-
-			Cpfcan_BtagPf_trackJetDistVal.push_back( catchInfsAndBound(trackinfo.getTrackJetDistVal(),0,-20,1 ));
-
-			Cpfcan_isMu.push_back(abs(PackedCandidate_->pdgId())==13);
-			Cpfcan_isEl.push_back(abs(PackedCandidate_->pdgId())==11);
-			Cpfcan_pdgID.push_back(PackedCandidate_->pdgId());
-
-			Cpfcan_charge.push_back(PackedCandidate_->charge());
-			Cpfcan_lostInnerHits.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->lostInnerHits(),2,0,10));
-			Cpfcan_numberOfPixelHits.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->numberOfPixelHits(),-1,0,10));
-
-
-			Cpfcan_chi2.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->pseudoTrack().normalizedChi2(),300,-1,300));
-			Cpfcan_quality.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->pseudoTrack().qualityMask(),0,0,100));
-
+				Cpfcan_chi2.push_back(0);
+				Cpfcan_quality.push_back(0);
+			}
 
 		}
 		else{// neutral candidates
@@ -388,6 +411,7 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Npfcan_deltaR.push_back(catchInfsAndBound(reco::deltaR(*PackedCandidate_,jet),0,-0.6,0,-0.6));
 			Npfcan_isGamma.push_back(fabs(PackedCandidate_->pdgId())==22);
 			Npfcan_HadFrac.push_back(PackedCandidate_->hcalFraction());
+			Npfcan_pdgID.push_back(PackedCandidate_->pdgId());
 
 		}
 

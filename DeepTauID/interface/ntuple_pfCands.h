@@ -113,6 +113,7 @@ private:
 	std::vector<float>   Npfcan_isGamma;
 	std::vector<float>   Npfcan_HadFrac;
 	std::vector<float>   Npfcan_drminsv;
+	std::vector<float>   Npfcan_pdgID;
 
 
 
