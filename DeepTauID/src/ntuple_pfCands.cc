@@ -299,10 +299,17 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 
 	const pat::Jet & jet=*recJet;
 
+	reco::Candidate::LorentzVector refVector=jet.p4();
+	if(recTau)
+		refVector=recTau->p4();
+
 	float etasign = 1.;
-	if (jet.eta()<0) etasign =-1.;
-	math::XYZVector jetDir = jet.momentum().Unit();
-	GlobalVector jetRefTrackDir(jet.px(),jet.py(),jet.pz());
+	if (refVector.eta()<0) etasign =-1.;
+
+
+	math::XYZVector jetDir = refVector.Vect().Unit();
+	GlobalVector jetRefTrackDir(refVector.px(),refVector.py(),refVector.pz());
+
 
 	TrackInfoBuilder trackinfo(builder);
 
@@ -315,11 +322,11 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Cpfcan_pt.push_back(PackedCandidate_->pt());
 			Cpfcan_eta.push_back(PackedCandidate_->eta());
 			Cpfcan_phi.push_back(PackedCandidate_->phi());
-			Cpfcan_ptrel.push_back(catchInfsAndBound(PackedCandidate_->pt()/jet.pt(),0,-1,0,-1));
-			Cpfcan_erel.push_back(catchInfsAndBound(PackedCandidate_->energy()/jet.pt(),0,-1,0,-1));
-			Cpfcan_phirel.push_back(catchInfsAndBound(fabs(reco::deltaPhi(PackedCandidate_->phi(),jet.phi())),0,-2,0,-0.5));
-			Cpfcan_etarel.push_back(catchInfsAndBound(fabs(PackedCandidate_->eta()-jet.eta()),0,-2,0,-0.5));
-			Cpfcan_deltaR.push_back(catchInfsAndBound(reco::deltaR(*PackedCandidate_,jet),0,-0.6,0,-0.6));
+			Cpfcan_ptrel.push_back(catchInfsAndBound(PackedCandidate_->pt()/refVector.pt(),0,-1,0,-1));
+			Cpfcan_erel.push_back(catchInfsAndBound(PackedCandidate_->energy()/refVector.pt(),0,-1,0,-1));
+			Cpfcan_phirel.push_back(catchInfsAndBound(fabs(reco::deltaPhi(PackedCandidate_->phi(),refVector.phi())),0,-2,0,-0.5));
+			Cpfcan_etarel.push_back(catchInfsAndBound(fabs(PackedCandidate_->eta()-refVector.eta()),0,-2,0,-0.5));
+			Cpfcan_deltaR.push_back(catchInfsAndBound(reco::deltaR(*PackedCandidate_,refVector),0,-0.6,0,-0.6));
 
 			Cpfcan_VTX_ass.push_back(PackedCandidate_->pvAssociationQuality());
 
@@ -341,8 +348,8 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			//divided
 			Cpfcan_vertexNormalizedChi2.push_back(PackedCandidate_->vertexNormalizedChi2());
 			Cpfcan_vertex_rho.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->vertex().rho(),0,-1,50));
-			Cpfcan_vertex_phirel.push_back(catchInfsAndBound_track(PackedCandidate_,reco::deltaPhi(PackedCandidate_->vertex().phi(),jet.phi()),0,0,10));
-			Cpfcan_vertex_etarel.push_back(catchInfsAndBound_track(PackedCandidate_,etasign*(PackedCandidate_->vertex().eta()-jet.eta()),0,-5,5));
+			Cpfcan_vertex_phirel.push_back(catchInfsAndBound_track(PackedCandidate_,reco::deltaPhi(PackedCandidate_->vertex().phi(),refVector.phi()),0,0,10));
+			Cpfcan_vertex_etarel.push_back(catchInfsAndBound_track(PackedCandidate_,etasign*(PackedCandidate_->vertex().eta()-refVector.eta()),0,-5,5));
 			Cpfcan_vertexRef_mass.push_back(catchInfsAndBound_track(PackedCandidate_,PackedCandidate_->vertexRef()->p4().M(),0,0,10));
 
 
@@ -403,12 +410,12 @@ bool ntuple_pfCands::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 			Npfcan_pt.push_back(PackedCandidate_->pt());
 			Npfcan_eta.push_back(PackedCandidate_->eta());
 			Npfcan_phi.push_back(PackedCandidate_->phi());
-			Npfcan_ptrel.push_back(catchInfsAndBound(PackedCandidate_->pt()/jet.pt(),0,-1,0,-1));
-			Npfcan_erel.push_back(catchInfsAndBound(PackedCandidate_->energy()/jet.pt(),0,-1,0,-1));
+			Npfcan_ptrel.push_back(catchInfsAndBound(PackedCandidate_->pt()/refVector.pt(),0,-1,0,-1));
+			Npfcan_erel.push_back(catchInfsAndBound(PackedCandidate_->energy()/refVector.pt(),0,-1,0,-1));
 			Npfcan_puppiw.push_back(PackedCandidate_->puppiWeight());
-			Npfcan_phirel.push_back(catchInfsAndBound(fabs(reco::deltaPhi(PackedCandidate_->phi(),jet.phi())),0,-2,0,-0.5));
-			Npfcan_etarel.push_back(catchInfsAndBound(fabs(PackedCandidate_->eta()-jet.eta()),0,-2,0,-0.5));
-			Npfcan_deltaR.push_back(catchInfsAndBound(reco::deltaR(*PackedCandidate_,jet),0,-0.6,0,-0.6));
+			Npfcan_phirel.push_back(catchInfsAndBound(fabs(reco::deltaPhi(PackedCandidate_->phi(),refVector.phi())),0,-2,0,-0.5));
+			Npfcan_etarel.push_back(catchInfsAndBound(fabs(PackedCandidate_->eta()-refVector.eta()),0,-2,0,-0.5));
+			Npfcan_deltaR.push_back(catchInfsAndBound(reco::deltaR(*PackedCandidate_,refVector),0,-0.6,0,-0.6));
 			Npfcan_isGamma.push_back(fabs(PackedCandidate_->pdgId())==22);
 			Npfcan_HadFrac.push_back(PackedCandidate_->hcalFraction());
 			Npfcan_pdgID.push_back(PackedCandidate_->pdgId());

@@ -56,6 +56,10 @@ private:
 
     int hasGenMatch;
 
+    int genJetPartFlav;
+    int genJetHadrFlav;
+    int genJetNBs;
+    int genJetNCs;
 
 };
 

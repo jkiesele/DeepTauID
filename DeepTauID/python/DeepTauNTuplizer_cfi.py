@@ -12,6 +12,9 @@ deepntuplizer = cms.EDAnalyzer('DeepTauNTuplizer',
                                 pupInfo = cms.InputTag("slimmedAddPileupInfo"),
                                 rhoInfo = cms.InputTag("fixedGridRhoFastjetAll"),	
                                 
-                                onlyRecTaus = cms.bool(True)
+                                onlyRecTaus = cms.bool(True),
+                                overSample = cms.int32(1),
+                                onlyTaus = cms.bool(False),
+                                
                                 
                                 )

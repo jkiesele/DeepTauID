@@ -36,6 +36,13 @@ void ntuple_JetInfo::initBranches(TTree* t){
     ADDBRANCH(t,hasElecMatch05);
     ADDBRANCH(t,hasMuonMatch05);
     ADDBRANCH(t,hasTauMatch05);
+
+
+    ADDBRANCH(t, genJetPartFlav);
+    ADDBRANCH(t, genJetHadrFlav);
+
+    ADDBRANCH(t, genJetNBs);
+    ADDBRANCH(t, genJetNCs);
 }
 void ntuple_JetInfo::clear(){
 
@@ -54,6 +61,9 @@ void ntuple_JetInfo::clear(){
     hasElecMatch05=0;
     hasMuonMatch05=0;
     hasTauMatch05=0;
+
+    genJetPartFlav=0;
+    genJetHadrFlav=0;
 }
 
 bool ntuple_JetInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet, const reco::GenParticle* genTau,
@@ -95,6 +105,10 @@ bool ntuple_JetInfo::fillBranches(const pat::Tau* recTau, const pat::Jet* recJet
 	    genJet_phi=recJet->genJet()->phi();
 	    genJet_mass=recJet->genJet()->mass();
 
+	    genJetPartFlav=recJet->partonFlavour();
+	    genJetHadrFlav=recJet->hadronFlavour();
+	    genJetNBs=recJet->jetFlavourInfo().getbHadrons().size();
+	    genJetNCs=recJet->jetFlavourInfo().getcHadrons().size();
 	}
 
 	return true;

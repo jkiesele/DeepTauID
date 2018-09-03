@@ -13,8 +13,9 @@ options.register('maxEvents',-1,VarParsing.VarParsing.multiplicity.singleton,Var
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
 options.register('nJobs', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "total jobs")
-options.register('gluonReduction', 0.0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.float, "gluon reduction")
-options.register('selectJets', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "select jets with good gen match")
+options.register('onlyTaus', False, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "select gen taus only")
+options.register('onlyRecTaus', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "select rec taus only")
+options.register('overSample', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "oversample")
 
 import os
 release=os.environ['CMSSW_VERSION'][6:11]
@@ -60,13 +61,13 @@ process.options = cms.untracked.PSet(
 )
 
 
-process.load('DeepTau.DeepTauID.samples.TTJetsPhase1_cfg') #default input
+process.load('DeepTau.DeepTauID.samples.default_9_3_5_cfi') #default input
 
 
 if options.inputFiles:
 	process.source.fileNames = options.inputFiles
-
-if options.inputScript != '' and options.inputScript != 'DeepTau.DeepTauID.samples.TTJetsPhase1_cfg':
+#default_9_3_5_cfi.py
+if options.inputScript != '' and options.inputScript != 'DeepTau.DeepTauID.samples.default_9_3_5_cfi':
     process.load(options.inputScript)
 
 numberOfFiles = len(process.source.fileNames)
@@ -94,7 +95,9 @@ process.TFileService = cms.Service("TFileService",
 # DeepNtuplizer
 process.load("DeepTau.DeepTauID.DeepTauNTuplizer_cfi")
 
-
+process.deepntuplizer.onlyTaus = options.onlyTaus
+process.deepntuplizer.onlyRecTaus = options.onlyRecTaus
+process.deepntuplizer.overSample = options.overSample
 
 #1631
 process.ProfilerService = cms.Service (

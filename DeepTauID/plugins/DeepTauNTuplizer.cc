@@ -92,12 +92,15 @@ private:
 
     double gentau_minpt_;
     double gentau_maxeta_;
+    double rectau_minpt_;
+    double rectau_maxeta_;
     double jet_minpt_;
 	double jet_maxeta_;
 	double noTauNoGen_reduction_;
 	double promptLepton_reduction_;
-
-	bool onlyrectaus_;
+	double backgroundjet_reduction_;
+	double oversample_;
+	bool onlyrectaus_,onlytaus_;
 
     edm::Service<TFileService> fs;
     TTree *tree_;
@@ -128,12 +131,16 @@ DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
 
     gentau_minpt_=18;
     gentau_maxeta_=3;
+    rectau_minpt_=20;
+    rectau_maxeta_=3;
     jet_minpt_=20;
 	jet_maxeta_=3;
 	noTauNoGen_reduction_=0.0; //reduce non-tau no gen (pileup) contribution to 0%
 	promptLepton_reduction_=0.0; //reduce to 0% muon/electron contamination for tests
-
+	backgroundjet_reduction_=0.6;
 	onlyrectaus_=iConfig.getParameter<bool>("onlyRecTaus");
+	onlytaus_=iConfig.getParameter<bool>("onlyTaus");
+	oversample_=iConfig.getParameter<int>("overSample");
 
 	ntuple_global * globals = new ntuple_global();
 	addModule(globals);
@@ -207,9 +214,13 @@ const pat::Jet* DeepTauNTuplizer::findMatchingJet(const reco::GenParticle* tau, 
 const pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::GenParticle* gentau, const std::vector<const pat::Tau *> & taus)const{
 	const pat::Tau* ret=0;
 	double mindr=0.3;
+	reco::Candidate::LorentzVector vismomentum=gentau->p4();
+	if(dec_helper.isPromptTau(*gentau)){
+		vismomentum=dec_helper.getVisMomentum(gentau);
+	}
 	for(size_t t=0;t<taus.size();t++){
 		auto rectau=taus.at(t);
-		double deltar=deltaR(gentau->p4(),rectau->p4());
+		double deltar=deltaR(vismomentum,rectau->p4());
 		if(deltar<mindr){
 			mindr=deltar;
 			ret=rectau;
@@ -219,7 +230,7 @@ const pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::GenParticle* ge
 }
 const pat::Tau* DeepTauNTuplizer::findMatchingRecTau(const reco::Jet* jet, const std::vector<const pat::Tau *> & taus)const{
 	const pat::Tau* ret=0;
-	double mindr=0.3;
+	double mindr=0.15;
 	for(size_t t=0;t<taus.size();t++){
 		auto tau=taus.at(t);
 		double deltar=deltaR(tau->p4(),jet->p4());
@@ -286,6 +297,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     // loop over gen taus and associated jets
     // save all associated jets
     std::vector<const pat::Jet *> tauJets;
+    std::vector<const pat::Tau *> recTaus;
     std::vector<const reco::GenParticle *> leptons; //for overlap check
 
     for(auto p: gens){
@@ -303,7 +315,7 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     	const pat::Tau * rectau = findMatchingRecTau(p,taus);
 
     	//if(jet && (jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_)) jet=0;
-
+    	recTaus.push_back(rectau);
 
     	if(dec_helper.isPromptTau(*p)){
     		reco::Candidate::LorentzVector vismomentum=dec_helper.getVisMomentum(p);
@@ -313,22 +325,31 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     	if(! dec_helper.isPromptTau(*p) && rand.Uniform(0.,1.) > promptLepton_reduction_ ) continue;
 
     	bool writetau=true;
-    	if(onlyrectaus_ && ! rectau) writetau=false;
+    	if(onlyrectaus_ && (!rectau || rectau->pt()<rectau_minpt_ || fabs(rectau->eta()) > rectau_maxeta_)) continue;
+
     	for(auto& m:modules_){
     		if(! m->fillBranches(rectau,jet,p,&gens)){ //MAKE TAU GEN CUTS HERE
     			writetau=false;
     		}
     	}
     	if(writetau){
-    		tree_->Fill();
+    		for(int i=0;i<oversample_;i++)
+    			tree_->Fill();
     	}
 
     }
+
+    if(onlytaus_) return;
 
     for(auto& m:modules_){
     	m->clear();
     }
 
+    std::vector<const pat::Tau *> unmatched_recTaus;
+    for(const auto t:taus){
+    	if(std::find(recTaus.begin(), recTaus.end(), t) != recTaus.end())continue;
+    	unmatched_recTaus.push_back(t);
+    }
 
     for(auto jet: jets){
     	if(std::find(tauJets.begin(),tauJets.end(),jet) != tauJets.end()) continue;
@@ -339,9 +360,11 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     	//these have no gen Tau // maybe a fake reco tau
     	reco::GenParticle * nolepton=0;
-    	const pat::Tau * rectau = findMatchingRecTau(jet,taus);
+    	const pat::Tau * rectau = findMatchingRecTau(jet,unmatched_recTaus);
 
-    	if(jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_) continue;
+
+    	if(onlyrectaus_ && (!rectau || rectau->pt()<rectau_minpt_ || fabs(rectau->eta()) > rectau_maxeta_)) continue;
+    	if(!onlyrectaus_ && (jet->pt()<jet_minpt_ || fabs(jet->eta())>jet_maxeta_)) continue;
 
     	// remove any jet that could overlap with a tau or lepton (dR=0.5)
     	// avoiding ambiguous cases
@@ -354,6 +377,8 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     	}
     	if(!usejet) continue;
 
+    	if(rand.Uniform(0.,1.)>backgroundjet_reduction_)continue;
+
     	// the implicit cuts that CAN be implemented in fillBranches are NOT used here
     	bool writejet=true;
     	if(onlyrectaus_ && ! rectau) writejet=false;
@@ -363,7 +388,8 @@ DeepTauNTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     		}
     	}
     	if(writejet)
-    		tree_->Fill();
+    		for(int i=0;i<oversample_;i++)
+    			tree_->Fill();
 
     }
 
