@@ -136,7 +136,7 @@ DeepTauNTuplizer::DeepTauNTuplizer(const edm::ParameterSet& iConfig):
     jet_minpt_=20;
 	jet_maxeta_=3;
 	noTauNoGen_reduction_=0.0; //reduce non-tau no gen (pileup) contribution to 0%
-	promptLepton_reduction_=0.0; //reduce to 0% muon/electron contamination for tests
+	promptLepton_reduction_=0.6; //reduce to 0% muon/electron contamination for tests
 	backgroundjet_reduction_=0.6;
 	onlyrectaus_=iConfig.getParameter<bool>("onlyRecTaus");
 	onlytaus_=iConfig.getParameter<bool>("onlyTaus");
